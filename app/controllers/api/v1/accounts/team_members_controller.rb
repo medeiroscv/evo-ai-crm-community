@@ -84,11 +84,11 @@ class Api::V1::Accounts::TeamMembersController < Api::V1::Accounts::BaseControll
   end
 
   def fetch_team
-    @team = Current.account.teams.find(params[:team_id])
+    @team = Team.find(params[:team_id])
   end
 
   def validate_member_id_params
-    invalid_ids = params[:user_ids].map(&:to_i) - @team.account.user_ids
+    invalid_ids = params[:user_ids].map(&:to_i) - User.pluck(:id)
 
     render json: { error: 'Invalid User IDs' }, status: :unauthorized and return if invalid_ids.present?
   end

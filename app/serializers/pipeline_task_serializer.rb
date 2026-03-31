@@ -25,7 +25,6 @@ module PipelineTaskSerializer
     result = {
       id: pipeline_task.id,
       pipeline_item_id: pipeline_task.pipeline_item_id,
-      account_id: pipeline_task.account_id,
       title: pipeline_task.title,
       description: pipeline_task.description,
       task_type: pipeline_task.task_type,

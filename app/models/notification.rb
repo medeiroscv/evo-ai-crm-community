@@ -26,7 +26,6 @@
 #
 class Notification < ApplicationRecord
   include MessageFormatHelper
-  belongs_to :account
   belongs_to :user
 
   belongs_to :primary_actor, polymorphic: true
@@ -66,8 +65,7 @@ class Notification < ApplicationRecord
       created_at: created_at.to_i,
       last_activity_at: last_activity_at.to_i,
       snoozed_until: snoozed_until,
-      meta: meta,
-      account_id: account_id
+      meta: meta
     }
     payload.merge!(primary_actor_data) if primary_actor.present?
     payload
@@ -176,7 +174,7 @@ class Notification < ApplicationRecord
   end
 
   def user_subscribed_to_notification?(delivery_type)
-    notification_setting = user.notification_settings.find_by(account_id: account.id)
+    notification_setting = user.notification_settings.first
     return false if notification_setting.blank?
 
     # Check if the user has subscribed to the specified type of notification

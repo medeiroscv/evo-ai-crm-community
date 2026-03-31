@@ -3,8 +3,6 @@ class AutomationRules::ConditionValidationService
 
   def initialize(rule)
     @rule = rule
-    @account = rule.account
-
     file = File.read('./lib/filters/filter_keys.yml')
     @filters = YAML.safe_load(file)
 
@@ -72,7 +70,7 @@ class AutomationRules::ConditionValidationService
   def custom_attribute_present?(attribute_key, attribute_model)
     attribute_model = attribute_model.presence || self.class::ATTRIBUTE_MODEL
 
-    @account.custom_attribute_definitions.where(
+    CustomAttributeDefinition.where(
       attribute_model: attribute_model
     ).find_by(attribute_key: attribute_key).present?
   end

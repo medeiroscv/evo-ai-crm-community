@@ -85,7 +85,7 @@ module ActivityMessageHandler
   end
 
   def activity_message_params(content)
-    { account_id: account_id, inbox_id: inbox_id, message_type: :activity, content: content }
+    { inbox_id: inbox_id, message_type: :activity, content: content }
   end
 
   def create_muted_message

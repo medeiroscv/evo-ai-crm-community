@@ -3,7 +3,6 @@ class ActionService
 
   def initialize(conversation)
     @conversation = conversation.reload
-    @account = @conversation.account
   end
 
   def mute_conversation(_params)
@@ -37,7 +36,7 @@ class ActionService
 
     return unless agent_belongs_to_inbox?(agent_ids)
 
-    @agent = @account.users.find_by(id: agent_ids)
+    @agent = User.find_by(id: agent_ids)
 
     @conversation.update!(assignee_id: @agent.id) if @agent.present?
   end
@@ -71,7 +70,7 @@ class ActionService
 
     emails.each do |email|
       email = parse_email_variables(@conversation, email)
-      ConversationReplyMailer.with(account: @conversation.account).conversation_transcript(@conversation, email)&.deliver_later
+      ConversationReplyMailer.with(account: nil).conversation_transcript(@conversation, email)&.deliver_later
     end
   end
 
@@ -79,13 +78,13 @@ class ActionService
 
   def agent_belongs_to_inbox?(agent_ids)
     member_ids = @conversation.inbox.members.pluck(:user_id)
-    assignable_agent_ids = member_ids + @account.administrators.ids
+    assignable_agent_ids = member_ids + User.where(type: 'SuperAdmin').pluck(:id)
 
     assignable_agent_ids.include?(agent_ids[0])
   end
 
   def team_belongs_to_account?(team_ids)
-    @account.team_ids.include?(team_ids[0])
+    Team.exists?(id: team_ids[0])
   end
 
   def conversation_a_tweet?

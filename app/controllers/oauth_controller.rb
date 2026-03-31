@@ -112,20 +112,10 @@ class OauthController < ApplicationController
   end
 
   # Endpoint para inspecionar token OAuth
-  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
   def token_info
     token = doorkeeper_token
     application = token.application
     user = User.find(token.resource_owner_id)
-
-    # Buscar todas as accounts que o usuário tem acesso
-    user_accounts = user.account_users.includes(:account).map do |au|
-      {
-        account_id: au.account.id,
-        account_name: au.account.name,
-        role: au.role
-      }
-    end
 
     render json: {
       token: {
@@ -139,29 +129,15 @@ class OauthController < ApplicationController
         id: application.id,
         name: application.name,
         uid: application.uid,
-        account_id: application.account_id,
         trusted: application.trusted
       },
       user: {
         id: user.id,
         email: user.email,
         name: user.name
-      },
-      account_info: {
-        token_belongs_to_account: application.account_id,
-        user_has_access_to_accounts: user_accounts
-      },
-      security_check: {
-        can_access_account: user_accounts.any? { |ua| ua[:account_id] == application.account_id },
-        message: if user_accounts.any? { |ua| ua[:account_id] == application.account_id }
-                   "✅ Token pode acessar account #{application.account_id}"
-                 else
-                   "❌ Token NÃO pode acessar account #{application.account_id}"
-                 end
       }
     }
   end
-  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   # RFC 8414 - OAuth 2.0 Authorization Server Metadata
   def oauth_metadata

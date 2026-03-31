@@ -29,7 +29,7 @@ class Channel::Whatsapp < ApplicationRecord
   before_validation :ensure_webhook_verify_token
 
   validates :provider, inclusion: { in: PROVIDERS }
-  validates :phone_number, presence: true, uniqueness: { scope: :account_id }
+  validates :phone_number, presence: true, uniqueness: true
   validate :validate_provider_config
 
   has_one :inbox, as: :channel, dependent: :destroy
@@ -94,7 +94,7 @@ class Channel::Whatsapp < ApplicationRecord
 
   def provider_connection_data
     data = { connection: provider_connection['connection'] }
-    if Current.account_user&.administrator?
+    if Current.user&.role == 'administrator'
       data[:qr_data_url] = provider_connection['qr_data_url']
       data[:error] = provider_connection['error']
     end

@@ -2,11 +2,10 @@
 class Contacts::BulkTransferService
   include Wisper::Publisher
 
-  def initialize(contact_ids:, from_company_id:, to_company_id:, account:)
+  def initialize(contact_ids:, from_company_id:, to_company_id:, account: nil)
     @contact_ids = contact_ids
     @from_company_id = from_company_id
     @to_company_id = to_company_id
-    @account = account
     @transferred_count = 0
   end
 
@@ -25,7 +24,7 @@ class Contacts::BulkTransferService
 
   private
 
-  attr_reader :contact_ids, :from_company_id, :to_company_id, :account, :transferred_count
+  attr_reader :contact_ids, :from_company_id, :to_company_id, :transferred_count
 
   def validate_params!
     raise 'From company not found' unless from_company
@@ -35,15 +34,15 @@ class Contacts::BulkTransferService
   end
 
   def from_company
-    @from_company ||= account.contacts.find_by(id: from_company_id, type: 'company')
+    @from_company ||= Contact.find_by(id: from_company_id, type: 'company')
   end
 
   def to_company
-    @to_company ||= account.contacts.find_by(id: to_company_id, type: 'company')
+    @to_company ||= Contact.find_by(id: to_company_id, type: 'company')
   end
 
   def contacts
-    @contacts ||= account.contacts.where(id: contact_ids, type: 'person')
+    @contacts ||= Contact.where(id: contact_ids, type: 'person')
   end
 
   def transfer_contacts
@@ -58,8 +57,7 @@ class Contacts::BulkTransferService
     publish(:contacts_bulk_transferred, data: {
       contacts: contacts,
       from_company: from_company,
-      to_company: to_company,
-      account: account
+      to_company: to_company
     })
   end
 

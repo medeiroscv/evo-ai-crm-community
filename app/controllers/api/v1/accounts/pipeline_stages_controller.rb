@@ -145,7 +145,7 @@ class Api::V1::Accounts::PipelineStagesController < Api::V1::Accounts::BaseContr
   private
 
   def fetch_pipeline
-    @pipeline = Current.account.pipelines.find(params[:pipeline_id])
+    @pipeline = Pipeline.find(params[:pipeline_id])
     authorize @pipeline, :view?
   end
 

@@ -56,13 +56,13 @@ class Api::V1::Accounts::CsatSurveyResponsesController < Api::V1::Accounts::Base
   private
 
   def set_total_sent_messages_count
-    @csat_messages = Current.account.messages.input_csat
+    @csat_messages = Message.all.input_csat
     @csat_messages = @csat_messages.where(created_at: range) if range.present?
     @total_sent_messages_count = @csat_messages.count
   end
 
   def set_csat_survey_responses
-    base_query = Current.account.csat_survey_responses.includes([:conversation, :assigned_agent, :contact])
+    base_query = CsatSurveyResponse.all.includes([:conversation, :assigned_agent, :contact])
     @csat_survey_responses = filtrate(base_query).filter_by_created_at(range)
                                                  .filter_by_assigned_agent_id(params[:user_ids])
                                                  .filter_by_inbox_id(params[:inbox_id])

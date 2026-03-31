@@ -154,9 +154,8 @@ class ContactInboxWithContactBuilder
     existing_contact_inbox = ContactInbox.joins(:inbox)
                                          .where(source_id: instagram_id)
                                          .where(
-                                           'inboxes.channel_type = ? AND inboxes.account_id = ?',
-                                           'Channel::FacebookPage',
-                                           account.id
+                                           'inboxes.channel_type = ?',
+                                           'Channel::FacebookPage'
                                          ).first
 
     existing_contact_inbox&.contact

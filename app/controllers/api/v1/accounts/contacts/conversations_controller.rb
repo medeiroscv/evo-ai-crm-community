@@ -1,7 +1,7 @@
 class Api::V1::Accounts::Contacts::ConversationsController < Api::V1::Accounts::Contacts::BaseController
   def index
     # Start with all conversations for this contact
-    conversations = Current.account.conversations.includes(
+    conversations = Conversation.includes(
       :assignee, :contact, :inbox, :taggings, { pipeline_items: [:pipeline, :pipeline_stage] }
     ).where(contact_id: @contact.id)
 
@@ -9,7 +9,7 @@ class Api::V1::Accounts::Contacts::ConversationsController < Api::V1::Accounts::
     conversations = Conversations::PermissionFilterService.new(
       conversations,
       Current.user,
-      Current.account
+      nil
     ).perform
 
     @conversations = conversations.order(last_activity_at: :desc).limit(20)

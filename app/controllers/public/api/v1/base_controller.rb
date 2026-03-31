@@ -34,7 +34,6 @@ class Public::Api::V1::BaseController < PublicController
 
     # Set account context
     @account = @access_token.owner
-    Current.account = @account
 
     # Set api_access_token for event listeners (EvoCampaign, Hooks, etc.)
     # This allows listeners to track the source of the lead creation

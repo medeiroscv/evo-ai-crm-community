@@ -6,7 +6,7 @@ module IntegrationAppSerializer
   def serialize(app, **options)
     return nil unless app
 
-    account = options[:account] || Current.account
+    account = options[:account]
 
     {
       id: app.id,

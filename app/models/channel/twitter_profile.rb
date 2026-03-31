@@ -22,7 +22,7 @@ class Channel::TwitterProfile < ApplicationRecord
 
   self.table_name = 'channel_twitter_profiles'
 
-  validates :profile_id, uniqueness: { scope: :account_id }
+  validates :profile_id, uniqueness: true
 
   before_destroy :unsubscribe
 

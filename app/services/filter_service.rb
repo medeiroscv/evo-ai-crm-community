@@ -84,7 +84,7 @@ class FilterService
   def lt_gt_filter_values(query_hash)
     attribute_key = query_hash[:attribute_key]
     attribute_model = query_hash['custom_attribute_type'].presence || self.class::ATTRIBUTE_MODEL
-    attribute_type = custom_attribute(attribute_key, @account, attribute_model).try(:attribute_display_type)
+    attribute_type = custom_attribute(attribute_key, attribute_model).try(:attribute_display_type)
     attribute_data_type = self.class::ATTRIBUTE_TYPES[attribute_type]
     value = query_hash['values'][0]
     operator = query_hash['filter_operator'] == 'is_less_than' ? '<' : '>'
@@ -145,7 +145,7 @@ class FilterService
   end
 
   def attribute_data_type
-    attribute_type = custom_attribute(@attribute_key, @account, attribute_model).try(:attribute_display_type)
+    attribute_type = custom_attribute(@attribute_key, attribute_model).try(:attribute_display_type)
     @attribute_data_type = self.class::ATTRIBUTE_TYPES[attribute_type]
   end
 
@@ -163,10 +163,9 @@ class FilterService
     query + not_in_custom_attr_query(table_name, query_hash, attribute_data_type)
   end
 
-  def custom_attribute(attribute_key, account, custom_attribute_type)
-    current_account = account || Current.account
+  def custom_attribute(attribute_key, custom_attribute_type)
     attribute_model = custom_attribute_type.presence || self.class::ATTRIBUTE_MODEL
-    @custom_attribute = current_account.custom_attribute_definitions.where(
+    @custom_attribute = CustomAttributeDefinition.where(
       attribute_model: attribute_model
     ).find_by(attribute_key: attribute_key)
   end

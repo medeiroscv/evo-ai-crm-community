@@ -33,7 +33,7 @@ module ConversationSerializer
     labels_by_title: nil
   )
     result = conversation.as_json(
-      only: [:id, :account_id, :inbox_id, :status, :assignee_id, :team_id,
+      only: [:id, :inbox_id, :status, :assignee_id, :team_id,
              :campaign_id, :display_id, :additional_attributes, :priority]
     )
 

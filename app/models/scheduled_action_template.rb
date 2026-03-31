@@ -32,24 +32,18 @@
 
 class ScheduledActionTemplate < ApplicationRecord
   # Associations
-  belongs_to :account
   belongs_to :creator, class_name: 'User', foreign_key: :created_by
 
   # Validations
-  validates :account_id, presence: true
   validates :name, presence: true
   validates :action_type, presence: true, inclusion: { in: ScheduledAction::ACTION_TYPES }
   validates :created_by, presence: true
   validates :payload, presence: true
 
   # Scopes
-  scope :for_account, ->(account_id) { where(account_id: account_id) }
   scope :by_action_type, ->(type) { where(action_type: type) }
   scope :defaults, -> { where(is_default: true) }
   scope :public_templates, -> { where(is_public: true) }
-  scope :for_account_with_defaults, ->(account_id) {
-    where('account_id = ? OR (is_public = true AND is_default = true)', account_id)
-  }
   scope :recent, -> { order(created_at: :desc) }
   scope :by_name, ->(name) { where('name ILIKE ?', "%#{name}%") }
 
@@ -65,11 +59,10 @@ class ScheduledActionTemplate < ApplicationRecord
   end
 
   # Create a ScheduledAction from this template
-  def create_scheduled_action!(account_id, contact_id, attributes = {})
+  def create_scheduled_action!(contact_id, attributes = {})
     action_attributes = apply_to_scheduled_action(attributes)
 
     ScheduledAction.create!(
-      account_id: account_id,
       contact_id: contact_id,
       created_by: created_by,
       max_retries: 3,

@@ -2,15 +2,15 @@
 
 class ScheduledActionTemplatePolicy < ApplicationPolicy
   def index?
-    user.account_users.exists?(account_id: record.account_id)
+    user.present?
   end
 
   def show?
-    user.account_users.exists?(account_id: record.account_id)
+    user.present?
   end
 
   def create?
-    user.account_users.exists?(account_id: record.account_id)
+    user.present?
   end
 
   def update?
@@ -22,12 +22,12 @@ class ScheduledActionTemplatePolicy < ApplicationPolicy
   end
 
   def apply?
-    user.account_users.exists?(account_id: record.account_id)
+    user.present?
   end
 
   private
 
   def user_admin?
-    user.account_users.find_by(account_id: record.account_id)&.role == 'admin'
+    user.administrator?
   end
 end

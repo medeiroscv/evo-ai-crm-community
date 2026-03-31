@@ -1,6 +1,5 @@
 class TestData::ContactBatchService
-  def initialize(account:, inboxes:, batch_size:, display_id_tracker:)
-    @account = account
+  def initialize(inboxes:, batch_size:, display_id_tracker:)
     @inboxes = inboxes
     @batch_size = batch_size
     @display_id_tracker = display_id_tracker
@@ -10,14 +9,14 @@ class TestData::ContactBatchService
   # Generates contacts, contact_inboxes, conversations, and messages
   # Returns the total number of messages created in this batch
   def generate!
-    Rails.logger.info { "Starting batch generation for account ##{@account.id} with #{@batch_size} contacts" }
+    Rails.logger.info { "Starting batch generation with #{@batch_size} contacts" }
 
     create_contacts
     create_contact_inboxes
     create_conversations
     create_messages
 
-    Rails.logger.info { "Completed batch with #{@total_messages} messages for account ##{@account.id}" }
+    Rails.logger.info { "Completed batch with #{@total_messages} messages" }
     @total_messages
   end
 
@@ -25,13 +24,12 @@ class TestData::ContactBatchService
 
   # rubocop:disable Rails/SkipsModelValidations
   def create_contacts
-    Rails.logger.info { "Creating #{@batch_size} contacts for account ##{@account.id}" }
+    Rails.logger.info { "Creating #{@batch_size} contacts" }
     start_time = Time.current
 
     @contacts_data = Array.new(@batch_size) { build_contact_data }
     Contact.insert_all!(@contacts_data) if @contacts_data.any?
     @contacts = Contact
-                .where(account_id: @account.id)
                 .order(created_at: :desc)
                 .limit(@batch_size)
 
@@ -42,7 +40,6 @@ class TestData::ContactBatchService
   def build_contact_data
     created_at = Faker::Time.between(from: 1.year.ago, to: Time.current)
     {
-      account_id: @account.id,
       name: Faker::Name.name,
       email: "#{SecureRandom.uuid}@example.com",
       phone_number: generate_e164_phone_number,
@@ -98,7 +95,7 @@ class TestData::ContactBatchService
 
   # rubocop:disable Rails/SkipsModelValidations
   def create_conversations
-    Rails.logger.info { "Creating conversations for account ##{@account.id}" }
+    Rails.logger.info { 'Creating conversations' }
     start_time = Time.current
 
     conversations_data = []
@@ -112,7 +109,6 @@ class TestData::ContactBatchService
 
     Conversation.insert_all!(conversations_data) if conversations_data.any?
     @conversations = Conversation.where(
-      account_id: @account.id,
       display_id: conversations_data.pluck(:display_id)
     ).order(:created_at)
 
@@ -123,7 +119,6 @@ class TestData::ContactBatchService
   def build_conversation(contact_inbox)
     created_at = Faker::Time.between(from: contact_inbox.created_at, to: Time.current)
     {
-      account_id: @account.id,
       inbox_id: contact_inbox.inbox_id,
       contact_id: contact_inbox.contact_id,
       contact_inbox_id: contact_inbox.id,
@@ -180,7 +175,6 @@ class TestData::ContactBatchService
 
   def build_message_data(conversation, message_type, created_at)
     {
-      account_id: @account.id,
       inbox_id: conversation.inbox_id,
       conversation_id: conversation.id,
       message_type: message_type,

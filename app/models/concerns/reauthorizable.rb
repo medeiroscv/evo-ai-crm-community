@@ -46,17 +46,17 @@ module Reauthorizable
 
   def process_integration_hook_reauthorization_emails
     if slack?
-      AdministratorNotifications::IntegrationsNotificationMailer.with(account: account).slack_disconnect.deliver_later
+      AdministratorNotifications::IntegrationsNotificationMailer.slack_disconnect.deliver_later
     end
   end
 
   def send_channel_reauthorization_email(disconnect_type)
-    AdministratorNotifications::ChannelNotificationsMailer.with(account: account).public_send(disconnect_type, inbox).deliver_later
+    AdministratorNotifications::ChannelNotificationsMailer.public_send(disconnect_type, inbox).deliver_later
   end
 
   def handle_automation_rule_reauthorization
     update!(active: false)
-    AdministratorNotifications::AccountNotificationMailer.with(account: account).automation_rule_disabled(self).deliver_later
+    AdministratorNotifications::AccountNotificationMailer.automation_rule_disabled(self).deliver_later
   end
 
   # call this after you successfully Reauthorized the object in UI
@@ -81,7 +81,7 @@ module Reauthorizable
   end
 
   def invalidate_inbox_cache
-    inbox.update_account_cache if inbox.present?
+    # No-op: account cache revalidation removed
   end
 
   def authorization_error_count_key

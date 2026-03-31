@@ -23,7 +23,7 @@ class Api::V1::Accounts::CannedResponsesController < Api::V1::Accounts::BaseCont
   end
 
   def create
-    @canned_response = Current.account.canned_responses.new(canned_response_params)
+    @canned_response = CannedResponse.new(canned_response_params)
     
     if @canned_response.save
       attach_files if params[:attachments].present?
@@ -70,11 +70,11 @@ class Api::V1::Accounts::CannedResponsesController < Api::V1::Accounts::BaseCont
   private
 
   def fetch_canned_response
-    @canned_response = Current.account.canned_responses.find(params[:id])
+    @canned_response = CannedResponse.find(params[:id])
   end
 
   def fetch_canned_responses
-    @canned_responses = Current.account.canned_responses
+    @canned_responses = CannedResponse.all
   end
 
   def canned_response_params
@@ -111,25 +111,23 @@ class Api::V1::Accounts::CannedResponsesController < Api::V1::Accounts::BaseCont
     file_type = determine_file_type(file.content_type)
     
     attachment = @canned_response.attachments.build(
-      account_id: Current.account.id,
       file_type: file_type
     )
-    
+
     attachment.file.attach(
       io: file,
       filename: file.original_filename,
       content_type: file.content_type
     )
-    
+
     attachment.save!
   end
 
   def attach_from_signed_id(attachment_params)
     signed_id = attachment_params[:signed_id]
     file_type = file_type_by_signed_id(signed_id)
-    
+
     attachment = @canned_response.attachments.build(
-      account_id: Current.account.id,
       file_type: file_type
     )
     
@@ -147,12 +145,12 @@ class Api::V1::Accounts::CannedResponsesController < Api::V1::Accounts::BaseCont
 
   def canned_responses
     if params[:search]
-      Current.account.canned_responses
+      CannedResponse.all
              .where('short_code ILIKE :search OR content ILIKE :search', search: "%#{params[:search]}%")
              .order_by_search(params[:search])
 
     else
-      Current.account.canned_responses
+      CannedResponse.all
     end
   end
 end

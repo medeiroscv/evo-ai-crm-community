@@ -3,15 +3,14 @@
 require 'rails_helper'
 
 RSpec.describe PipelineServiceDefinition, type: :model do
-  let(:account) { Account.create!(name: 'Test Account') }
   let(:user) { User.create!(email: 'svc-test@example.com', name: 'Test User') }
   let(:pipeline) do
-    Pipeline.create!(account: account, name: 'Test Pipeline', pipeline_type: 'sales', created_by: user)
+    Pipeline.create!(name: 'Test Pipeline', pipeline_type: 'sales', created_by: user)
   end
 
   def build_definition(attrs = {})
     pipeline.pipeline_service_definitions.new(
-      { name: 'Consulting', default_value: 150.00, currency: 'BRL', account: account }.merge(attrs)
+      { name: 'Consulting', default_value: 150.00, currency: 'BRL' }.merge(attrs)
     )
   end
 
@@ -19,11 +18,6 @@ RSpec.describe PipelineServiceDefinition, type: :model do
     it 'belongs to pipeline' do
       definition = build_definition
       expect(definition.pipeline).to eq(pipeline)
-    end
-
-    it 'belongs to account' do
-      definition = build_definition
-      expect(definition.account).to eq(account)
     end
   end
 
@@ -53,9 +47,9 @@ RSpec.describe PipelineServiceDefinition, type: :model do
 
     it 'allows same name on different pipelines' do
       build_definition.save!
-      other_pipeline = Pipeline.create!(account: account, name: 'Other Pipeline', pipeline_type: 'custom', created_by: user)
+      other_pipeline = Pipeline.create!(name: 'Other Pipeline', pipeline_type: 'custom', created_by: user)
       other_def = other_pipeline.pipeline_service_definitions.new(
-        name: 'Consulting', default_value: 100.00, currency: 'BRL', account: account
+        name: 'Consulting', default_value: 100.00, currency: 'BRL'
       )
       expect(other_def).to be_valid
     end
@@ -93,15 +87,9 @@ RSpec.describe PipelineServiceDefinition, type: :model do
     end
 
     it 'requires pipeline_id' do
-      definition = PipelineServiceDefinition.new(name: 'Test', default_value: 10, currency: 'BRL', account: account)
+      definition = PipelineServiceDefinition.new(name: 'Test', default_value: 10, currency: 'BRL')
       expect(definition).not_to be_valid
       expect(definition.errors[:pipeline_id]).to include("can't be blank")
-    end
-
-    it 'requires account_id' do
-      definition = PipelineServiceDefinition.new(name: 'Test', default_value: 10, currency: 'BRL', pipeline: pipeline)
-      expect(definition).not_to be_valid
-      expect(definition.errors[:account_id]).to include("can't be blank")
     end
   end
 
@@ -119,12 +107,6 @@ RSpec.describe PipelineServiceDefinition, type: :model do
     describe '.for_pipeline' do
       it 'returns definitions for given pipeline' do
         expect(described_class.for_pipeline(pipeline)).to include(active_def, inactive_def)
-      end
-    end
-
-    describe '.for_account' do
-      it 'returns definitions for given account' do
-        expect(described_class.for_account(account)).to include(active_def, inactive_def)
       end
     end
   end

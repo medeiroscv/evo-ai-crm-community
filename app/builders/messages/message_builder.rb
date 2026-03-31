@@ -67,7 +67,6 @@ class Messages::MessageBuilder
 
     @attachments.each do |uploaded_attachment|
       attachment = @message.attachments.build(
-        account_id: @message.account_id,
         file: uploaded_attachment
       )
       attachment.meta = process_metadata(uploaded_attachment)
@@ -257,7 +256,7 @@ class Messages::MessageBuilder
   def message_sender
     return if @params[:sender_type] != 'AgentBot'
 
-    AgentBot.where(account_id: [nil, @conversation.account.id]).find_by(id: @params[:sender_id])
+    AgentBot.find_by(id: @params[:sender_id])
   end
 
   def message_params
@@ -266,7 +265,6 @@ class Messages::MessageBuilder
     content_value = @params[:content] || ''
 
     {
-      account_id: @conversation.account_id,
       inbox_id: @conversation.inbox_id,
       message_type: message_type,
       content: content_value,

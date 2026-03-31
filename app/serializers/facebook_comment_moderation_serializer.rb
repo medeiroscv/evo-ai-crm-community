@@ -23,7 +23,6 @@ module FacebookCommentModerationSerializer
       comment_id: moderation.comment_id,
       conversation_id: moderation.conversation_id.to_s,
       message_id: moderation.message_id.to_s,
-      account_id: moderation.account_id.to_s,
       moderation_type: moderation.moderation_type,
       status: moderation.status,
       action_type: moderation.action_type,

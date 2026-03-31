@@ -8,7 +8,6 @@ module ScheduledActionSerializer
 
     {
       id: scheduled_action.id,
-      account_id: scheduled_action.account_id,
       deal_id: scheduled_action.deal_id,
       contact_id: scheduled_action.contact_id,
       conversation_id: scheduled_action.conversation_id,

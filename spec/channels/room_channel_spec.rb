@@ -3,15 +3,12 @@
 require 'rails_helper'
 
 RSpec.describe RoomChannel, type: :channel do
-  let(:account) { Account.create!(name: 'Room Test Account') }
   let(:user) do
-    u = User.create!(name: 'Agent', email: "room-#{SecureRandom.hex(4)}@test.com")
-    AccountUser.create!(account: account, user: u)
-    u
+    User.create!(name: 'Agent', email: "room-#{SecureRandom.hex(4)}@test.com")
   end
-  let(:web_channel) { Channel::WebWidget.create!(account: account, website_url: 'https://test.example.com') }
-  let(:inbox) { Inbox.create!(account: account, name: 'Test Inbox', channel: web_channel) }
-  let(:contact) { Contact.create!(account: account, name: 'Test Contact', email: "contact-#{SecureRandom.hex(4)}@test.com") }
+  let(:web_channel) { Channel::WebWidget.create!(website_url: 'https://test.example.com') }
+  let(:inbox) { Inbox.create!(name: 'Test Inbox', channel: web_channel) }
+  let(:contact) { Contact.create!(name: 'Test Contact', email: "contact-#{SecureRandom.hex(4)}@test.com") }
   let(:contact_inbox) { ContactInbox.create!(inbox: inbox, contact: contact, source_id: "test-#{SecureRandom.hex(4)}") }
 
   before do
@@ -26,11 +23,10 @@ RSpec.describe RoomChannel, type: :channel do
         InboxMember.create!(inbox: inbox, user: user)
         stub_connection(warden_user: nil)
 
-        subscribe(account_id: account.id.to_s, user_id: user.id.to_s, pubsub_token: user.pubsub_token)
+        subscribe(user_id: user.id.to_s, pubsub_token: user.pubsub_token)
 
         expect(subscription).to be_confirmed
         expect(subscription).to have_stream_from(user.pubsub_token)
-        expect(subscription).to have_stream_from("account_#{account.id}")
       end
     end
 
@@ -38,7 +34,7 @@ RSpec.describe RoomChannel, type: :channel do
       it 'subscribes as contact' do
         stub_connection(warden_user: nil)
 
-        subscribe(account_id: account.id.to_s, pubsub_token: contact_inbox.pubsub_token)
+        subscribe(pubsub_token: contact_inbox.pubsub_token)
 
         expect(subscription).to be_confirmed
         expect(subscription).to have_stream_from(contact_inbox.pubsub_token)
@@ -50,7 +46,7 @@ RSpec.describe RoomChannel, type: :channel do
         InboxMember.create!(inbox: inbox, user: user)
         stub_connection(warden_user: user)
 
-        subscribe(account_id: account.id.to_s, user_id: user.id.to_s, pubsub_token: 'stale-token')
+        subscribe(user_id: user.id.to_s, pubsub_token: 'stale-token')
 
         expect(subscription).to be_confirmed
         expect(subscription).to have_stream_from(user.pubsub_token)
@@ -61,7 +57,7 @@ RSpec.describe RoomChannel, type: :channel do
       it 'rejects the subscription' do
         stub_connection(warden_user: nil)
 
-        subscribe(account_id: account.id.to_s, user_id: '999', pubsub_token: 'invalid-token')
+        subscribe(user_id: '999', pubsub_token: 'invalid-token')
 
         expect(subscription).to be_rejected
       end
@@ -72,7 +68,7 @@ RSpec.describe RoomChannel, type: :channel do
         other_user = User.create!(name: 'Other', email: "other-#{SecureRandom.hex(4)}@test.com")
         stub_connection(warden_user: other_user)
 
-        subscribe(account_id: account.id.to_s, user_id: user.id.to_s, pubsub_token: 'invalid-token')
+        subscribe(user_id: user.id.to_s, pubsub_token: 'invalid-token')
 
         expect(subscription).to be_rejected
       end

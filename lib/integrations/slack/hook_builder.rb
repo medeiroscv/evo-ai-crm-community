@@ -8,7 +8,7 @@ class Integrations::Slack::HookBuilder
   def perform
     token = fetch_access_token
 
-    hook = account.hooks.new(
+    hook = Hook.new(
       access_token: token,
       status: 'disabled',
       inbox_id: params[:inbox_id],
@@ -20,14 +20,6 @@ class Integrations::Slack::HookBuilder
   end
 
   private
-
-  def account
-    params[:account]
-  end
-
-  def hook_type
-    params[:inbox_id] ? 'inbox' : 'account'
-  end
 
   def fetch_access_token
     client = Slack::Web::Client.new

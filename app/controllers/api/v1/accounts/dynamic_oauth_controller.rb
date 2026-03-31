@@ -37,29 +37,13 @@ class Api::V1::Accounts::DynamicOauthController < Api::V1::Accounts::BaseControl
       }, status: :bad_request
     end
 
-    account_id = DynamicOauthService.extract_account_id(client_id)
-    account_user = current_user.account_users.find_by(account_id: account_id)
-
-    if account_user&.administrator?
-      account = Account.find_by(id: account_id)
-      render json: {
-        success: true,
-        data: {
-          client_id: client_id,
-          account_id: account_id,
-          account_name: account&.name,
-          user_role: account_user.role,
-          can_authorize: true
-        }
-      }
-    else
-      render json: {
-        success: false,
-        error: 'You do not have administrator access to this account',
+    # Single-tenant: no account lookup needed, just validate the client_id format
+    render json: {
+      success: true,
+      data: {
         client_id: client_id,
-        account_id: account_id,
-        can_authorize: false
-      }, status: :forbidden
-    end
+        can_authorize: true
+      }
+    }
   end
 end

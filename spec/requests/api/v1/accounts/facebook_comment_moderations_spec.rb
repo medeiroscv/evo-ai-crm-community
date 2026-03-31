@@ -3,23 +3,20 @@
 require 'rails_helper'
 
 RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: :request do
-  let(:account) { Account.create!(name: 'Spec Account') }
   let(:user) { User.create!(name: 'Test User', email: 'test@example.com') }
   let(:service_token) { 'spec-service-token' }
   let(:headers) do
     {
-      'X-Service-Token' => service_token,
-      'account-id' => account.id.to_s
+      'X-Service-Token' => service_token
     }
   end
 
-  let(:channel) { Channel::Api.create!(account: account) }
-  let(:inbox) { Inbox.create!(account: account, channel: channel, name: 'Test Inbox') }
-  let(:contact) { Contact.create!(account: account, name: 'Test Contact', email: 'contact@example.com') }
+  let(:channel) { Channel::Api.create! }
+  let(:inbox) { Inbox.create!(channel: channel, name: 'Test Inbox') }
+  let(:contact) { Contact.create!(name: 'Test Contact', email: 'contact@example.com') }
   let(:contact_inbox) { ContactInbox.create!(inbox: inbox, contact: contact, source_id: 'test_source_id') }
   let(:conversation) do
     Conversation.create!(
-      account: account,
       inbox: inbox,
       contact: contact,
       contact_inbox: contact_inbox,
@@ -28,7 +25,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
   end
   let(:message) do
     Message.create!(
-      account: account,
       inbox: inbox,
       conversation: conversation,
       content: 'Test message content',
@@ -40,8 +36,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
 
   before do
     ENV['EVOAI_CRM_API_TOKEN'] = service_token
-    AccountUser.create!(account: account, user: user)
-    Current.account = account
     Current.user = user
   end
 
@@ -57,7 +51,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
   describe 'GET /api/v1/facebook_comment_moderations' do
     let!(:moderation1) do
       FacebookCommentModeration.create!(
-        account: account,
         conversation: conversation,
         message: message,
         comment_id: 'fb_comment_123',
@@ -69,7 +62,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
 
     let!(:moderation2) do
       FacebookCommentModeration.create!(
-        account: account,
         conversation: conversation,
         message: message,
         comment_id: 'fb_comment_456',
@@ -83,7 +75,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
 
     let!(:moderation3) do
       FacebookCommentModeration.create!(
-        account: account,
         conversation: conversation,
         message: message,
         comment_id: 'fb_comment_789',
@@ -188,7 +179,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
     context 'when filtering by conversation_id' do
       let(:other_conversation) do
         Conversation.create!(
-          account: account,
           inbox: inbox,
           contact: contact,
           contact_inbox: contact_inbox,
@@ -198,7 +188,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
 
       let!(:other_moderation) do
         FacebookCommentModeration.create!(
-          account: account,
           conversation: other_conversation,
           message: message,
           comment_id: 'fb_comment_999',
@@ -225,7 +214,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
       before do
         25.times do |i|
           FacebookCommentModeration.create!(
-            account: account,
             conversation: conversation,
             message: message,
             comment_id: "fb_comment_#{i}",
@@ -284,7 +272,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
     context 'when ordering by most recent first' do
       let!(:old_moderation) do
         moderation = FacebookCommentModeration.create!(
-          account: account,
           conversation: conversation,
           message: message,
           comment_id: 'fb_comment_old',
@@ -311,7 +298,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
   describe 'GET /api/v1/facebook_comment_moderations/:id' do
     let!(:moderation) do
       FacebookCommentModeration.create!(
-        account: account,
         conversation: conversation,
         message: message,
         comment_id: 'fb_comment_123',
@@ -370,7 +356,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
   describe 'POST /api/v1/facebook_comment_moderations/:id/approve' do
     let!(:moderation) do
       FacebookCommentModeration.create!(
-        account: account,
         conversation: conversation,
         message: message,
         comment_id: 'fb_comment_123',
@@ -416,7 +401,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
   describe 'POST /api/v1/facebook_comment_moderations/:id/reject' do
     let!(:moderation) do
       FacebookCommentModeration.create!(
-        account: account,
         conversation: conversation,
         message: message,
         comment_id: 'fb_comment_123',
@@ -482,7 +466,6 @@ RSpec.describe 'API::V1::Accounts::FacebookCommentModerationsController', type: 
   describe 'POST /api/v1/facebook_comment_moderations/:id/regenerate_response' do
     let!(:moderation) do
       FacebookCommentModeration.create!(
-        account: account,
         conversation: conversation,
         message: message,
         comment_id: 'fb_comment_123',

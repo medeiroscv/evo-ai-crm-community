@@ -7,11 +7,10 @@ class Api::V1::Accounts::LabelsController < Api::V1::Accounts::BaseController
   })
   # index e show são permitidos para todos (sem verificação de permissão)
 
-  before_action :current_account
   before_action :fetch_label, except: [:index, :create]
 
   def index
-    @labels = Current.account.labels
+    @labels = Label.all
     
     apply_pagination
     
@@ -30,7 +29,7 @@ class Api::V1::Accounts::LabelsController < Api::V1::Accounts::BaseController
   end
 
   def create
-    @label = Current.account.labels.new(permitted_params)
+    @label = Label.all.new(permitted_params)
     
     if @label.save
       success_response(
@@ -75,7 +74,7 @@ class Api::V1::Accounts::LabelsController < Api::V1::Accounts::BaseController
   private
 
   def fetch_label
-    @label = Current.account.labels.find(params[:id])
+    @label = Label.all.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     error_response(
       code: ApiErrorCodes::LABEL_NOT_FOUND,

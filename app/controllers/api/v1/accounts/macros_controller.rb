@@ -39,7 +39,7 @@ class Api::V1::Accounts::MacrosController < Api::V1::Accounts::BaseController
 
   def create
     macro_params = macros_with_user.except(:visibility).merge(created_by_id: current_user.id)
-    @macro = Current.account.macros.new(macro_params)
+    @macro = Macro.new(macro_params)
     @macro.set_visibility(current_user, permitted_params)
     @macro.actions = params[:actions]
 
@@ -117,7 +117,7 @@ class Api::V1::Accounts::MacrosController < Api::V1::Accounts::BaseController
 
   def permitted_params
     params.permit(
-      :name, :account_id, :visibility,
+      :name, :visibility,
       actions: [:action_name, { action_params: [] }]
     )
   end
@@ -127,7 +127,7 @@ class Api::V1::Accounts::MacrosController < Api::V1::Accounts::BaseController
   end
 
   def fetch_macro
-    @macro = Current.account.macros.find_by(id: params[:id])
+    @macro = Macro.find_by(id: params[:id])
   end
 
 end

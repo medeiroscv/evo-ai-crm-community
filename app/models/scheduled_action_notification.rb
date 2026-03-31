@@ -34,7 +34,6 @@
 
 class ScheduledActionNotification < ApplicationRecord
   # Associations
-  belongs_to :account
   belongs_to :scheduled_action
   belongs_to :user
 
@@ -43,14 +42,12 @@ class ScheduledActionNotification < ApplicationRecord
   STATUSES = %w[pending sent failed].freeze
 
   # Validations
-  validates :account_id, presence: true
   validates :scheduled_action_id, presence: true
   validates :user_id, presence: true
   validates :notification_type, presence: true, inclusion: { in: NOTIFICATION_TYPES }
   validates :status, presence: true, inclusion: { in: STATUSES }
 
   # Scopes
-  scope :for_account, ->(account_id) { where(account_id: account_id) }
   scope :for_user, ->(user_id) { where(user_id: user_id) }
   scope :for_action, ->(action_id) { where(scheduled_action_id: action_id) }
   scope :by_type, ->(type) { where(notification_type: type) }

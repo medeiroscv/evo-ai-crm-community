@@ -1,7 +1,6 @@
 class Crm::BaseProcessorService
   def initialize(hook)
     @hook = hook
-    @account = hook.account
   end
 
   # Class method to be overridden by subclasses

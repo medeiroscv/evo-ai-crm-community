@@ -2,7 +2,6 @@ class Macros::ExecutionService < ActionService
   def initialize(macro, conversation, user)
     super(conversation)
     @macro = macro
-    @account = macro.account
     @user = user
     Current.user = user
   end
@@ -13,7 +12,7 @@ class Macros::ExecutionService < ActionService
       begin
         send(action[:action_name], action[:action_params])
       rescue StandardError => e
-        EvolutionExceptionTracker.new(e, account: @account).capture_exception
+        EvolutionExceptionTracker.new(e).capture_exception
       end
     end
   ensure
@@ -76,7 +75,7 @@ class Macros::ExecutionService < ActionService
     
     # Se um inbox específico foi fornecido, validar se a conversa pertence a esse inbox
     if inbox_id
-      inbox = @account.inboxes.find_by(id: inbox_id)
+      inbox = Inbox.find_by(id: inbox_id)
       if inbox && @conversation.inbox != inbox
         Rails.logger.warn "Macro #{@macro.id}: Inbox mismatch. Conversation inbox: #{@conversation.inbox.id}, Requested inbox: #{inbox_id}"
         # Por ora, vamos logar e continuar com o inbox da conversa

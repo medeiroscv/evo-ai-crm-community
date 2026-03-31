@@ -8,8 +8,8 @@ class Api::V1::Accounts::AssignableAgentsController < Api::V1::Accounts::BaseCon
       member_ids
     end
     agent_ids = agent_ids.inject(:&)
-    agents = Current.account.users.where(id: agent_ids)
-    @assignable_agents = (agents + Current.account.administrators).uniq
+    agents = User.where(id: agent_ids)
+    @assignable_agents = (agents + User.with_role(:administrator)).uniq
     
     success_response(
       data: UserSerializer.serialize_collection(@assignable_agents),
@@ -20,7 +20,7 @@ class Api::V1::Accounts::AssignableAgentsController < Api::V1::Accounts::BaseCon
   private
 
   def fetch_inboxes
-    @inboxes = Current.account.inboxes.find(permitted_params[:inbox_ids])
+    @inboxes = Inbox.find(permitted_params[:inbox_ids])
   end
 
   def permitted_params

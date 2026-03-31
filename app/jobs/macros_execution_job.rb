@@ -2,8 +2,7 @@ class MacrosExecutionJob < ApplicationJob
   queue_as :medium
 
   def perform(macro, conversation_ids:, user:)
-    account = macro.account
-    conversations = account.conversations.where(display_id: conversation_ids.to_a)
+    conversations = Conversation.where(display_id: conversation_ids.to_a)
 
     return if conversations.blank?
 

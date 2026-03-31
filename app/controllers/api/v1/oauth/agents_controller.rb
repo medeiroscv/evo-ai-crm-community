@@ -9,14 +9,12 @@ class Api::V1::Oauth::AgentsController < Api::V1::Accounts::AgentsController
   })
 
   # Remove os middlewares do controller pai que dependem de account_id na URL
-  skip_before_action :current_account
   skip_before_action :authenticate_request!
 
   # Aplica middleware OAuth
   include Doorkeeper::Rails::Helpers
   include OauthAccountHelper
   before_action :ensure_oauth_authentication!
-  before_action :current_account
   before_action :fetch_agent, except: [:create, :index, :bulk_create]
   before_action :validate_limit, only: [:create]
   before_action :validate_limit_for_bulk_create, only: [:bulk_create]
@@ -80,6 +78,6 @@ class Api::V1::Oauth::AgentsController < Api::V1::Accounts::AgentsController
   end
 
   def agents
-    @agents ||= Current.account.users.order_by_full_name.includes(:account_users, { avatar_attachment: [:blob] })
+    @agents ||= User.all.order_by_full_name.includes(:account_users, { avatar_attachment: [:blob] })
   end
 end

@@ -29,12 +29,10 @@ class ContactCompany < ApplicationRecord
 
   belongs_to :contact
   belongs_to :company, class_name: 'Contact'
-  belongs_to :account
 
   # Validations
   validates :contact_id, presence: true
   validates :company_id, presence: true
-  validates :account_id, presence: true
   validates :contact_id, uniqueness: { scope: :company_id }
   validate :contact_must_be_person
   validate :company_must_be_company
@@ -43,7 +41,6 @@ class ContactCompany < ApplicationRecord
 
   # Scopes
   scope :active, -> { where(deleted_at: nil) }
-  scope :for_account, ->(account) { where(account: account) }
 
   private
 
@@ -71,12 +68,5 @@ class ContactCompany < ApplicationRecord
     errors.add(:base, 'Cannot link contact to itself')
   end
 
-  def must_belong_to_same_account
-    return unless contact && company
-
-    return unless contact.account_id != company.account_id
-
-    errors.add(:base, 'Contact and company must belong to the same account')
-  end
 end
 

@@ -2,8 +2,6 @@ class Api::V1::Accounts::ContactInboxesController < Api::V1::Accounts::BaseContr
   before_action :ensure_inbox
 
   def filter
-    # 🔒 SECURITY: @inbox is already validated to belong to Current.account in ensure_inbox
-    # No need to filter by inbox_id again since we're already scoped to @inbox
     contact_inbox = @inbox.contact_inboxes.find_by(source_id: permitted_params[:source_id])
     
     if contact_inbox.blank?
@@ -25,7 +23,7 @@ class Api::V1::Accounts::ContactInboxesController < Api::V1::Accounts::BaseContr
   private
 
   def ensure_inbox
-    @inbox = Current.account.inboxes.find(permitted_params[:inbox_id])
+    @inbox = Inbox.find(permitted_params[:inbox_id])
     authorize @inbox, :show?
   end
 

@@ -9,7 +9,7 @@ class Api::V1::Accounts::AiAgentsController < Api::V1::Accounts::BaseController
     }
     params_hash[:folder_id] = params[:folder_id] if params[:folder_id].present?
 
-    Rails.logger.info "AI Agents Index - Current Account: #{Current.account&.id}, User: #{Current.user&.id}, Params: #{params_hash}"
+    Rails.logger.info "AI Agents Index - User: #{Current.user&.id}, Params: #{params_hash}"
     Rails.logger.info "AI Agents Index - Request Headers: #{request.headers.env.select { |k,v| k.to_s.match?(/token|auth|uid|client/i) }.keys}"
     
     response = EvoAiCoreService.list_agents(params_hash, request.headers)

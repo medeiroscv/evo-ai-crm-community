@@ -20,7 +20,6 @@
 #
 class DashboardApp < ApplicationRecord
   belongs_to :user
-  belongs_to :account
   validate :validate_content
   validates :display_type, inclusion: { in: %w[conversation sidebar] }
   validates :sidebar_menu, inclusion: { in: %w[conversations contacts pipelines campaigns automation agents channels reports settings] },

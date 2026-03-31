@@ -3,9 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe 'POST /api/v1/widget/config', type: :request do
-  let(:account) { Account.create!(name: 'Widget Account', locale: 'en') }
-  let(:web_widget_channel) { Channel::WebWidget.create!(account: account, website_url: 'https://example.test', locale: channel_locale) }
-  let!(:inbox) { Inbox.create!(account: account, channel: web_widget_channel, name: 'Widget Inbox') }
+  let(:web_widget_channel) { Channel::WebWidget.create!(website_url: 'https://example.test', locale: channel_locale) }
+  let!(:inbox) { Inbox.create!(channel: web_widget_channel, name: 'Widget Inbox') }
   let(:channel_locale) { nil }
 
   def json_response
@@ -21,7 +20,7 @@ RSpec.describe 'POST /api/v1/widget/config', type: :request do
     expect(json_response.dig('website_channel_config', 'locale')).to eq('pt_BR')
   end
 
-  it 'falls back to account locale when channel locale is nil' do
+  it 'falls back to default locale when channel locale is nil' do
     post '/api/v1/widget/config', params: { website_token: web_widget_channel.website_token }
 
     expect(response).to have_http_status(:ok)

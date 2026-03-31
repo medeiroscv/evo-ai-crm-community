@@ -139,7 +139,6 @@ module Whatsapp::EvolutionGoHandlers::MessagesUpsert
     end
 
     message_attributes = {
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       content: message_content || '',
       source_id: raw_message_id,
@@ -233,7 +232,7 @@ module Whatsapp::EvolutionGoHandlers::MessagesUpsert
       temp_file.rewind
 
       attachment = @message.attachments.new(
-        account: @message.account,
+        account: nil,
         file_type: determine_attachment_file_type
       )
 
@@ -462,7 +461,6 @@ module Whatsapp::EvolutionGoHandlers::MessagesUpsert
     log_attachment_info(attachment_file, final_filename, final_content_type)
 
     attachment = @message.attachments.build(
-      account_id: @message.account_id,
       file_type: file_content_type.to_s,
       file: {
         io: attachment_file,

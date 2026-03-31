@@ -41,7 +41,6 @@ class Api::V1::Accounts::PipelineTasksController < Api::V1::Accounts::BaseContro
 
   def create
     @task = @pipeline_item.tasks.new(task_params)
-    @task.account = Current.account
     @task.created_by = Current.user
 
     if @task.save
@@ -107,8 +106,7 @@ class Api::V1::Accounts::PipelineTasksController < Api::V1::Accounts::BaseContro
   def add_subtask
     subtask_params = task_params.merge(
       parent_task_id: @task.id,
-      pipeline_item_id: @task.pipeline_item_id,
-      account_id: @task.account_id
+      pipeline_item_id: @task.pipeline_item_id
     )
     
     @subtask = PipelineTask.new(subtask_params)
@@ -269,13 +267,13 @@ class Api::V1::Accounts::PipelineTasksController < Api::V1::Accounts::BaseContro
   private
 
   def set_pipeline_item
-    @pipeline = Current.account.pipelines.find(params[:pipeline_id])
+    @pipeline = Pipeline.find(params[:pipeline_id])
     @pipeline_item = @pipeline.pipeline_items.find(params[:pipeline_item_id])
   end
 
   def set_task
-    @pipeline = Current.account.pipelines.find(params[:pipeline_id]) if params[:pipeline_id].present?
-    @task = Current.account.pipeline_tasks.includes(subtasks: :subtasks, parent_task: :parent_task).find(params[:id])
+    @pipeline = Pipeline.find(params[:pipeline_id]) if params[:pipeline_id].present?
+    @task = PipelineTask.all.includes(subtasks: :subtasks, parent_task: :parent_task).find(params[:id])
   end
 
   def authorize_task
@@ -286,7 +284,7 @@ class Api::V1::Accounts::PipelineTasksController < Api::V1::Accounts::BaseContro
     if params[:pipeline_item_id].present?
       @pipeline_item.tasks
     else
-      Current.account.pipeline_tasks
+      PipelineTask.all
     end
   end
 

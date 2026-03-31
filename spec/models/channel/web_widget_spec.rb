@@ -3,8 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe Channel::WebWidget, type: :model do
-  let(:account) { Account.create!(name: 'Test Account') }
-  let(:web_widget) { Channel::WebWidget.create!(account: account, website_url: 'https://example.com') }
+  let(:web_widget) { Channel::WebWidget.create!(website_url: 'https://example.com') }
 
   describe '#selected_feature_flags' do
     it 'returns empty array when no flags are enabled' do

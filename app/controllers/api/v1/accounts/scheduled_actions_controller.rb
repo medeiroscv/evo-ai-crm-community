@@ -22,14 +22,14 @@ class Api::V1::Accounts::ScheduledActionsController < Api::V1::Accounts::BaseCon
   end
 
   def create
-    @scheduled_action = Current.account.scheduled_actions.new(scheduled_action_params)
+    @scheduled_action = ScheduledAction.new(scheduled_action_params)
     
     # Set created_by - use current_user if available, otherwise use a system user for service token auth
     if current_user.present?
       @scheduled_action.created_by = current_user.id
     elsif service_authenticated?
       # For service-to-service calls, find a system user or first global admin
-      system_user = User.find_by(email: 'system@evoai.app') || Account.first&.users&.first
+      system_user = User.find_by(email: 'system@evoai.app')
       if system_user
         @scheduled_action.created_by = system_user.id
         Rails.logger.info "ScheduledAction: Using system user #{system_user.id} (#{system_user.class.name}) for service token auth"
@@ -98,7 +98,7 @@ class Api::V1::Accounts::ScheduledActionsController < Api::V1::Accounts::BaseCon
 
   def by_deal
     deal_id = params[:deal_id]
-    @scheduled_actions = Current.account.scheduled_actions
+    @scheduled_actions = ScheduledAction.all
                                 .for_deal(deal_id)
                                 .by_scheduled_time
     apply_pagination
@@ -112,7 +112,7 @@ class Api::V1::Accounts::ScheduledActionsController < Api::V1::Accounts::BaseCon
 
   def by_contact
     contact_id = params[:contact_id]
-    @scheduled_actions = Current.account.scheduled_actions
+    @scheduled_actions = ScheduledAction.all
                                 .for_contact(contact_id)
                                 .by_scheduled_time
     apply_pagination
@@ -127,7 +127,7 @@ class Api::V1::Accounts::ScheduledActionsController < Api::V1::Accounts::BaseCon
   private
 
   def set_scheduled_action
-    @scheduled_action = Current.account.scheduled_actions.find(params[:id])
+    @scheduled_action = ScheduledAction.find(params[:id])
   end
 
   def check_authorization
@@ -135,7 +135,7 @@ class Api::V1::Accounts::ScheduledActionsController < Api::V1::Accounts::BaseCon
   end
 
   def fetch_scheduled_actions
-    actions = Current.account.scheduled_actions
+    actions = ScheduledAction.all
 
     # Filter by status
     actions = actions.by_status(params[:status]) if params[:status].present?
@@ -198,7 +198,6 @@ class Api::V1::Accounts::ScheduledActionsController < Api::V1::Accounts::BaseCon
   def scheduled_action_json(action)
     {
       id: action.id,
-      account_id: action.account_id,
       deal_id: action.deal_id,
       contact_id: action.contact_id,
       conversation_id: action.conversation_id,

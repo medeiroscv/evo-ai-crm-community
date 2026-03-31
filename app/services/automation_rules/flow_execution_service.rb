@@ -1,7 +1,6 @@
 class AutomationRules::FlowExecutionService
-  def initialize(rule, account, conversation = nil, contact = nil)
+  def initialize(rule, _account = nil, conversation = nil, contact = nil)
     @rule = rule
-    @account = account
     @conversation = conversation
     @contact = contact
     Current.executed_by = rule
@@ -180,7 +179,7 @@ class AutomationRules::FlowExecutionService
     rescue StandardError => e
       Rails.logger.error "Automation Rule #{@rule.id}: Error executing node #{node_type} (#{node['id']}): #{e.message}"
       Rails.logger.error "Automation Rule #{@rule.id}: Node data: #{node_data.inspect}"
-      EvolutionExceptionTracker.new(e, account: @account).capture_exception
+      EvolutionExceptionTracker.new(e).capture_exception
     end
   end
 
@@ -200,7 +199,7 @@ class AutomationRules::FlowExecutionService
     return unless @conversation
     
     agent_id = agent_ids.is_a?(Array) ? agent_ids.first : agent_ids
-    agent = @account.users.find_by(id: agent_id)
+    agent = User.find_by(id: agent_id)
     return unless agent
     
     @conversation.update!(assignee: agent)
@@ -211,7 +210,7 @@ class AutomationRules::FlowExecutionService
     return unless @conversation
     
     team_id = team_ids.is_a?(Array) ? team_ids.first : team_ids
-    team = @account.teams.find_by(id: team_id)
+    team = Team.find_by(id: team_id)
     return unless team
     
     @conversation.update!(team: team)
@@ -219,7 +218,7 @@ class AutomationRules::FlowExecutionService
   end
   
   def add_label(label_ids)
-    labels = @account.labels.where(id: label_ids)
+    labels = Label.where(id: label_ids)
     return if labels.empty?
     
     if @conversation
@@ -238,7 +237,7 @@ class AutomationRules::FlowExecutionService
   end
   
   def remove_label(label_ids)
-    labels = @account.labels.where(id: label_ids)
+    labels = Label.where(id: label_ids)
     return if labels.empty?
     
     if @conversation
@@ -292,7 +291,7 @@ class AutomationRules::FlowExecutionService
     
     # Validar inbox se especificado
     if inbox_id
-      inbox = @account.inboxes.find_by(id: inbox_id)
+      inbox = Inbox.find_by(id: inbox_id)
       if inbox && @conversation.inbox != inbox
         Rails.logger.warn "Automation Rule #{@rule.id}: Inbox mismatch. Conversation inbox: #{@conversation.inbox.id}, Requested inbox: #{inbox_id}"
       end
@@ -341,7 +340,7 @@ class AutomationRules::FlowExecutionService
     team_ids = data[:team_ids] || data['team_ids']
     message = data[:message] || data['message']
     
-    teams = @account.teams.where(id: team_ids)
+    teams = Team.where(id: team_ids)
     teams.each do |team|
       if @conversation
         TeamNotifications::AutomationNotificationMailer.conversation_creation(@conversation, team, message)&.deliver_now

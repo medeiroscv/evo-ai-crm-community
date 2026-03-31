@@ -23,7 +23,7 @@ class Api::V1::Accounts::ScheduledActionTemplatesController < Api::V1::Accounts:
   end
 
   def create
-    @template = Current.account.scheduled_action_templates.new(template_params)
+    @template = ScheduledActionTemplate.new(template_params)
     @template.created_by = current_user.id
 
     if @template.save
@@ -72,7 +72,7 @@ class Api::V1::Accounts::ScheduledActionTemplatesController < Api::V1::Accounts:
 
   def apply
     # Apply a template to create a scheduled action
-    template = Current.account.scheduled_action_templates.find(params[:template_id])
+    template = ScheduledActionTemplate.find(params[:template_id])
 
     action_params = {
       contact_id: params[:contact_id],
@@ -83,7 +83,7 @@ class Api::V1::Accounts::ScheduledActionTemplatesController < Api::V1::Accounts:
     }
 
     @scheduled_action = template.create_scheduled_action!(
-      Current.account.id,
+      nil,
       params[:contact_id],
       action_params
     )
@@ -102,7 +102,7 @@ class Api::V1::Accounts::ScheduledActionTemplatesController < Api::V1::Accounts:
   private
 
   def set_template
-    @template = Current.account.scheduled_action_templates.find(params[:id])
+    @template = ScheduledActionTemplate.find(params[:id])
   end
 
   def check_authorization
@@ -110,7 +110,7 @@ class Api::V1::Accounts::ScheduledActionTemplatesController < Api::V1::Accounts:
   end
 
   def fetch_templates
-    templates = Current.account.scheduled_action_templates
+    templates = ScheduledActionTemplate.all
 
     # Filter by action type
     templates = templates.by_action_type(params[:action_type]) if params[:action_type].present?
@@ -160,7 +160,6 @@ class Api::V1::Accounts::ScheduledActionTemplatesController < Api::V1::Accounts:
   def template_json(template)
     {
       id: template.id,
-      account_id: template.account_id,
       name: template.name,
       description: template.description,
       action_type: template.action_type,
@@ -181,7 +180,6 @@ class Api::V1::Accounts::ScheduledActionTemplatesController < Api::V1::Accounts:
   def scheduled_action_json(action)
     {
       id: action.id,
-      account_id: action.account_id,
       contact_id: action.contact_id,
       action_type: action.action_type,
       status: action.status,

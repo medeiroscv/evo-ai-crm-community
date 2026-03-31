@@ -64,7 +64,6 @@ class Message < ApplicationRecord
   before_save :ensure_processed_message_content
   before_save :ensure_in_reply_to
 
-  validates :account_id, presence: true
   validates :inbox_id, presence: true
   validates :conversation_id, presence: true
   validates_with ContentAttributeValidator
@@ -121,7 +120,6 @@ class Message < ApplicationRecord
   # if you want to change order, use `reorder`
   default_scope { order(created_at: :asc) }
 
-  belongs_to :account
   belongs_to :inbox
   belongs_to :conversation, touch: true
   belongs_to :sender, polymorphic: true, optional: true
@@ -175,7 +173,6 @@ class Message < ApplicationRecord
 
   def webhook_data
     data = {
-      account: account.webhook_data,
       additional_attributes: additional_attributes,
       content_attributes: content_attributes,
       content_type: content_type,
@@ -271,7 +268,7 @@ class Message < ApplicationRecord
 
     # there are cases where automations can result in message loops, we need to prevent such cases.
     if conversation.messages.where('created_at >= ?', 1.minute.ago).count >= Limits.conversation_message_per_minute_limit
-      Rails.logger.error "Too many message: Account Id - #{account_id} : Conversation id - #{conversation_id}"
+      Rails.logger.error "Too many message: Conversation id - #{conversation_id}"
       errors.add(:base, 'Too many messages')
     end
   end
@@ -433,7 +430,7 @@ class Message < ApplicationRecord
   end
 
   def email_notifiable_api_channel?
-    inbox.api? && inbox.account.feature_enabled?('email_continuity_on_api_channel')
+    inbox.api?
   end
 
   def email_notifiable_channel?

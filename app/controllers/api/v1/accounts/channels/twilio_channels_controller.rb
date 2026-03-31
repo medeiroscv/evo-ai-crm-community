@@ -48,7 +48,7 @@ class Api::V1::Accounts::Channels::TwilioChannelsController < Api::V1::Accounts:
   end
 
   def build_inbox
-    @twilio_channel = Current.account.twilio_sms.create!(
+    @twilio_channel = Channel::TwilioSms.create!(
       account_sid: permitted_params[:account_sid],
       auth_token: permitted_params[:auth_token],
       api_key_sid: permitted_params[:api_key_sid],
@@ -56,7 +56,7 @@ class Api::V1::Accounts::Channels::TwilioChannelsController < Api::V1::Accounts:
       phone_number: phone_number,
       medium: medium
     )
-    @inbox = Current.account.inboxes.create!(
+    @inbox = Inbox.create!(
       name: permitted_params[:name],
       channel: @twilio_channel
     )

@@ -16,7 +16,7 @@ class Api::V1::Accounts::AutomationRulesController < Api::V1::Accounts::BaseCont
   private
 
   def fetch_automation_rule
-    @automation_rule = Current.account.automation_rules.find(params[:id])
+    @automation_rule = AutomationRule.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     error_response(
       code: ApiErrorCodes::AUTOMATION_RULE_NOT_FOUND,
@@ -28,7 +28,7 @@ class Api::V1::Accounts::AutomationRulesController < Api::V1::Accounts::BaseCont
   public
 
   def index
-    @automation_rules = Current.account.automation_rules
+    @automation_rules = AutomationRule.all
 
     apply_pagination
     
@@ -47,7 +47,7 @@ class Api::V1::Accounts::AutomationRulesController < Api::V1::Accounts::BaseCont
   end
 
   def create
-    @automation_rule = Current.account.automation_rules.new(automation_rules_permit)
+    @automation_rule = AutomationRule.new(automation_rules_permit)
     @automation_rule.actions = params[:actions]
     @automation_rule.conditions = params[:conditions]
     @automation_rule.flow_data = params[:flow_data] if params[:flow_data]
@@ -100,7 +100,7 @@ class Api::V1::Accounts::AutomationRulesController < Api::V1::Accounts::BaseCont
   end
 
   def clone
-    automation_rule = Current.account.automation_rules.find_by(id: params[:automation_rule_id])
+    automation_rule = AutomationRule.find_by(id: params[:automation_rule_id])
     new_rule = automation_rule.dup
     new_rule.save!
     @automation_rule = new_rule
@@ -135,7 +135,7 @@ class Api::V1::Accounts::AutomationRulesController < Api::V1::Accounts::BaseCont
 
   def automation_rules_permit
     params.permit(
-      :name, :description, :event_name, :account_id, :active, :mode,
+      :name, :description, :event_name, :active, :mode,
       conditions: [:attribute_key, :filter_operator, :query_operator, :custom_attribute_type, { values: [] }],
       actions: [:action_name, { action_params: [] }],
       flow_data: {
@@ -158,6 +158,6 @@ class Api::V1::Accounts::AutomationRulesController < Api::V1::Accounts::BaseCont
   end
 
   def fetch_automation_rule
-    @automation_rule = Current.account.automation_rules.find_by(id: params[:id])
+    @automation_rule = AutomationRule.find_by(id: params[:id])
   end
 end

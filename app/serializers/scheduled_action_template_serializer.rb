@@ -8,7 +8,6 @@ module ScheduledActionTemplateSerializer
 
     data = {
       id: template.id,
-      account_id: template.account_id,
       name: template.name,
       description: template.description,
       action_type: template.action_type,

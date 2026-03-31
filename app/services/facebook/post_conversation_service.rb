@@ -55,7 +55,6 @@ class Facebook::PostConversationService
 
       # Create conversation with user's contact
       conversation = Conversation.create!(
-        account_id: inbox.account_id,
         inbox_id: inbox.id,
         contact_id: user_contact_inbox.contact_id,
         contact_inbox_id: user_contact_inbox.id,

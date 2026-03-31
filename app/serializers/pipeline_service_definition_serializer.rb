@@ -21,7 +21,6 @@ module PipelineServiceDefinitionSerializer
     {
       id: service_definition.id,
       pipeline_id: service_definition.pipeline_id,
-      account_id: service_definition.account_id,
       name: service_definition.name,
       default_value: service_definition.default_value.to_f,
       currency: service_definition.currency,

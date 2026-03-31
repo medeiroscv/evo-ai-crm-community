@@ -51,7 +51,7 @@ class Facebook::Moderation::GenerateResponseJob < ApplicationJob
         moderation_attrs = {
           conversation: conversation,
           message: message,
-          account: conversation.account,
+          account: nil,
           comment_id: message.source_id || message.id.to_s,
           moderation_type: 'response_approval',
           status: 'pending',
@@ -72,7 +72,7 @@ class Facebook::Moderation::GenerateResponseJob < ApplicationJob
       moderation_attrs = {
         conversation: conversation,
         message: message,
-        account: conversation.account,
+        account: nil,
         comment_id: message.source_id || message.id.to_s,
         moderation_type: 'response_approval',
         status: 'pending',

@@ -24,7 +24,7 @@ module MessageSerializer
     result = message.as_json(
       only: [:id, :content, :content_type, :content_attributes, :message_type,
              :private, :status, :source_id, :sender_type, :sender_id,
-             :conversation_id, :external_source_ids, :account_id,
+             :conversation_id, :external_source_ids,
              :additional_attributes, :processed_message_content, :sentiment, :sentiment_score]
     )
 
@@ -113,7 +113,6 @@ module MessageSerializer
       id: attachment.id.to_s,
       message_id: attachment.message_id&.to_s || attachment.attachable_id.to_s,
       file_type: attachment.file_type,
-      account_id: attachment.account_id.to_s,
       extension: attachment.extension,
       data_url: attachment.file_url || '',
       thumb_url: attachment.thumb_url,

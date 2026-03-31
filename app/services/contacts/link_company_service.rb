@@ -2,10 +2,9 @@
 class Contacts::LinkCompanyService
   include Wisper::Publisher
 
-  def initialize(contact:, company:, account:)
+  def initialize(contact:, company:, account: nil)
     @contact = contact
     @company = company
-    @account = account
   end
 
   def perform
@@ -23,28 +22,25 @@ class Contacts::LinkCompanyService
 
   private
 
-  attr_reader :contact, :company, :account
+  attr_reader :contact, :company
 
   def validate_params!
     raise 'Contact must be a person' unless contact.person?
     raise 'Company must be a company' unless company.company?
     raise 'Already linked' if contact.companies.include?(company)
-    raise 'Account mismatch' unless contact.account_id == company.account_id
   end
 
   def link_company
     ContactCompany.create!(
       contact: contact,
-      company: company,
-      account: account
+      company: company
     )
   end
 
   def publish_events
     publish(:contact_company_linked, data: {
       contact: contact,
-      company: company,
-      account: account
+      company: company
     })
   end
 
@@ -56,4 +52,3 @@ class Contacts::LinkCompanyService
     { success: false, error: message }
   end
 end
-

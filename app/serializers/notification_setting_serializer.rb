@@ -20,7 +20,6 @@ module NotificationSettingSerializer
   def serialize(notification_setting)
     {
       id: notification_setting.id,
-      account_id: notification_setting.account_id,
       user_id: notification_setting.user_id,
       email_flags: notification_setting.email_flags,
       push_flags: notification_setting.push_flags,

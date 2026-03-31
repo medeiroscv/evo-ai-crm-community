@@ -10,7 +10,7 @@ RSpec.describe ConversationSerializer do
       activity_time = Time.zone.parse('2026-02-12 10:00:00')
 
       conversation = double('Conversation',
-        as_json: { 'id' => 1, 'account_id' => 1, 'inbox_id' => 1, 'status' => 'open',
+        as_json: { 'id' => 1, 'inbox_id' => 1, 'status' => 'open',
                    'assignee_id' => nil, 'team_id' => nil, 'campaign_id' => nil,
                    'display_id' => 1, 'additional_attributes' => {}, 'priority' => nil },
         created_at: activity_time,
@@ -42,7 +42,7 @@ RSpec.describe ConversationSerializer do
       now = Time.zone.parse('2026-02-12 11:00:00')
 
       conversation = double('Conversation',
-        as_json: { 'id' => 2, 'account_id' => 1, 'inbox_id' => 1, 'status' => 'open',
+        as_json: { 'id' => 2, 'inbox_id' => 1, 'status' => 'open',
                    'assignee_id' => nil, 'team_id' => nil, 'campaign_id' => nil,
                    'display_id' => 2, 'additional_attributes' => {}, 'priority' => nil },
         created_at: now,

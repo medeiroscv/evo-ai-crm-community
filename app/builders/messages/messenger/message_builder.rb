@@ -25,7 +25,7 @@ class Messages::Messenger::MessageBuilder
 
   def attachment_params(attachment)
     file_type = attachment['type'].to_sym
-    params = { file_type: file_type, account_id: @message.account_id }
+    params = { file_type: file_type }
 
     if [:image, :file, :audio, :video, :share, :story_mention, :ig_reel].include? file_type
       params.merge!(file_type_params(attachment))

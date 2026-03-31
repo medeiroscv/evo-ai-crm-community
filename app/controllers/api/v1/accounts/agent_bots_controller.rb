@@ -11,12 +11,11 @@ class Api::V1::Accounts::AgentBotsController < Api::V1::Accounts::BaseController
 
   include Api::V1::ResourceLimitsHelper
 
-  before_action :current_account
   before_action :agent_bot, except: [:index, :create]
   before_action :validate_agent_bot_limit, only: [:create]
 
   def index
-    @agent_bots = AgentBot.where(account_id: [nil, Current.account.id])
+    @agent_bots = AgentBot.all
     
     apply_pagination
     
@@ -34,7 +33,7 @@ class Api::V1::Accounts::AgentBotsController < Api::V1::Accounts::BaseController
   end
 
   def create
-    @agent_bot = Current.account.agent_bots.create!(permitted_params.except(:avatar_url))
+    @agent_bot = AgentBot.create!(permitted_params.except(:avatar_url))
     process_avatar_from_url
     
     success_response(
@@ -131,8 +130,7 @@ class Api::V1::Accounts::AgentBotsController < Api::V1::Accounts::BaseController
   private
 
   def agent_bot
-    @agent_bot = AgentBot.where(account_id: [nil, Current.account.id]).find(params[:id]) if params[:action] == 'show'
-    @agent_bot ||= Current.account.agent_bots.find(params[:id])
+    @agent_bot = AgentBot.find(params[:id])
   end
 
   def permitted_params

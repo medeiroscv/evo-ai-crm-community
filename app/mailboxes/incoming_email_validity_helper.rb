@@ -20,7 +20,6 @@ module IncomingEmailValidityHelper
   end
 
   def valid_external_email_for_active_account?
-    return false unless @account.active?
     return false if @processed_mail.notification_email_from_evolution?
 
     true

@@ -33,7 +33,6 @@ class AgentBot < ApplicationRecord
   has_many :messages, as: :sender, dependent: :nullify
 
   before_destroy :cleanup_associations
-  belongs_to :account, optional: true
   enum bot_type: { webhook: 0 }
   enum bot_provider: { webhook_provider: 'webhook', evo_ai_provider: 'evo_ai', n8n_provider: 'n8n' }
 
@@ -64,10 +63,6 @@ class AgentBot < ApplicationRecord
       outgoing_url: outgoing_url,
       api_key: api_key
     }
-  end
-
-  def system_bot?
-    account.nil?
   end
 
   def safe_destroy

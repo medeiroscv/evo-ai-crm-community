@@ -2,9 +2,16 @@ class Account::ConversationsResolutionSchedulerJob < ApplicationJob
   queue_as :scheduled_jobs
 
   def perform
-    Account.with_auto_resolve.find_each(batch_size: 100) do |account|
-      Conversations::ResolutionJob.perform_later(account: account)
-    end
+    # Single-tenant: auto-resolve conversations directly without Account model.
+    # Find all open conversations past the auto-resolve threshold.
+    auto_resolve_duration = GlobalConfigService.load('AUTO_RESOLVE_DURATION', nil)&.to_i
+    return if auto_resolve_duration.nil? || auto_resolve_duration.zero?
+
+    resolvable_conversations = Conversation.open
+                                           .where('last_activity_at < ?', Time.now.utc - auto_resolve_duration.minutes)
+                                           .limit(Limits::BULK_ACTIONS_LIMIT)
+
+    resolvable_conversations.each(&:toggle_status)
   end
 end
 Account::ConversationsResolutionSchedulerJob.prepend_mod_with('Account::ConversationsResolutionSchedulerJob')

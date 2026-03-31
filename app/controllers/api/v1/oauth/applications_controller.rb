@@ -8,21 +8,8 @@ class Api::V1::Oauth::ApplicationsController < Api::BaseController
     account_id = params[:account_id]
     redirect_uri = params[:redirect_uri]
 
-    unless client_id && account_id && redirect_uri
+    unless client_id && redirect_uri
       render json: { error: 'Missing required parameters' }, status: :bad_request
-      return
-    end
-
-    # Verificar se o usuário tem acesso admin à account
-    account_user = current_user.account_users.find_by(account_id: account_id)
-    unless account_user&.administrator?
-      render json: { error: 'Access denied - admin role required' }, status: :forbidden
-      return
-    end
-
-    account = Account.find_by(id: account_id)
-    unless account
-      render json: { error: 'Account not found' }, status: :not_found
       return
     end
 
@@ -34,7 +21,7 @@ class Api::V1::Oauth::ApplicationsController < Api::BaseController
         # Vincular aplicação RFC7591 à account
         existing_app.update!(account_id: account_id)
         
-        Rails.logger.debug "🔗 RFC 7591: Bound application #{existing_app.name} to account #{account.name}" if Rails.env.development?
+        Rails.logger.debug "RFC 7591: Bound application #{existing_app.name}" if Rails.env.development?
         
         render json: { 
           message: 'Application bound to account successfully',
@@ -55,7 +42,7 @@ class Api::V1::Oauth::ApplicationsController < Api::BaseController
           return
         end
 
-        Rails.logger.debug "✅ Dynamic OAuth: Created application #{application.name} for account #{account.name}" if Rails.env.development?
+        Rails.logger.debug "Dynamic OAuth: Created application #{application.name}" if Rails.env.development?
 
         render json: { 
           message: 'Application created successfully',

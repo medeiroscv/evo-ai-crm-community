@@ -1,5 +1,5 @@
 class V2::Reports::InboxSummaryBuilder < V2::Reports::BaseSummaryBuilder
-  pattr_initialize [:account!, :params!]
+  pattr_initialize [:account, :params!]
 
   def build
     load_data
@@ -20,11 +20,11 @@ class V2::Reports::InboxSummaryBuilder < V2::Reports::BaseSummaryBuilder
   end
 
   def fetch_conversations_count
-    account.conversations.where(created_at: range).group(group_by_key).count
+    Conversation.where(created_at: range).group(group_by_key).count
   end
 
   def prepare_report
-    account.inboxes.map do |inbox|
+    Inbox.all.map do |inbox|
       build_inbox_stats(inbox)
     end
   end

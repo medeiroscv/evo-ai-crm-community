@@ -13,7 +13,6 @@ class CreateFacebookCommentModerations < ActiveRecord::Migration[7.1]
       t.text :rejection_reason # Reason for rejection
       t.references :moderated_by, null: true, foreign_key: { to_table: :users }, type: :uuid
       t.datetime :moderated_at
-      t.references :account, null: false, foreign_key: true, type: :uuid
 
       t.timestamps
     end
@@ -22,7 +21,6 @@ class CreateFacebookCommentModerations < ActiveRecord::Migration[7.1]
     add_index :facebook_comment_moderations, :moderation_type unless index_exists?(:facebook_comment_moderations, :moderation_type)
     add_index :facebook_comment_moderations, :comment_id unless index_exists?(:facebook_comment_moderations, :comment_id)
     add_index :facebook_comment_moderations, [:status, :moderation_type] unless index_exists?(:facebook_comment_moderations, [:status, :moderation_type])
-    # Note: conversation_id, message_id, account_id, and moderated_by_id indexes are automatically created by t.references
+    # Note: conversation_id, message_id, and moderated_by_id indexes are automatically created by t.references
   end
 end
-

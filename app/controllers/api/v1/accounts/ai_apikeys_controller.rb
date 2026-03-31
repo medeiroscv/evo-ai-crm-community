@@ -8,7 +8,7 @@ class Api::V1::Accounts::AiApikeysController < Api::V1::Accounts::BaseController
       limit: params[:limit] || 100
     }
 
-    Rails.logger.info "AI API Keys Index - Current Account: #{Current.account&.id}, User: #{Current.user&.id}, Params: #{params_hash}"
+    Rails.logger.info "AI API Keys Index - User: #{Current.user&.id}, Params: #{params_hash}"
     
     response = EvoAiCoreService.list_api_keys(params_hash, request.headers)
     

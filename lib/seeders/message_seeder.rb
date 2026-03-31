@@ -1,7 +1,6 @@
 module Seeders::MessageSeeder
   def self.create_sample_email_collect_message(conversation)
     Message.create!(
-      account: conversation.account,
       inbox: conversation.inbox,
       conversation: conversation,
       message_type: :template,
@@ -12,7 +11,6 @@ module Seeders::MessageSeeder
 
   def self.create_sample_csat_collect_message(conversation)
     Message.create!(
-      account: conversation.account,
       inbox: conversation.inbox,
       conversation: conversation,
       message_type: :template,
@@ -23,7 +21,6 @@ module Seeders::MessageSeeder
 
   def self.create_sample_cards_message(conversation)
     Message.create!(
-      account: conversation.account,
       inbox: conversation.inbox,
       conversation: conversation,
       message_type: :template,
@@ -60,7 +57,6 @@ module Seeders::MessageSeeder
 
   def self.create_sample_input_select_message(conversation)
     Message.create!(
-      account: conversation.account,
       inbox: conversation.inbox,
       conversation: conversation,
       message_type: :template,
@@ -79,7 +75,6 @@ module Seeders::MessageSeeder
 
   def self.create_sample_form_message(conversation)
     Message.create!(
-      account: conversation.account,
       inbox: conversation.inbox,
       conversation: conversation,
       message_type: :template,
@@ -106,7 +101,6 @@ module Seeders::MessageSeeder
 
   def self.create_sample_articles_message(conversation)
     Message.create!(
-      account: conversation.account,
       inbox: conversation.inbox,
       conversation: conversation,
       message_type: :template,

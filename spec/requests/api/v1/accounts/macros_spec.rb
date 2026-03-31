@@ -8,9 +8,8 @@ RSpec.describe 'API::V1::Accounts::MacrosController', type: :request do
   let(:validate_url) { "#{base_url}/api/v1/auth/validate" }
   let(:token) { 'test-bearer-token' }
   let(:headers) { { 'Authorization' => "Bearer #{token}" } }
-  let!(:account) { Account.create!(name: 'Spec Account') }
+  let(:account_id) { 1 }
   let!(:user) { User.create!(name: 'Test User', email: 'test@example.com') }
-  let!(:account_user) { AccountUser.create!(user: user, account: account) }
 
   around do |example|
     original_base_url = ENV['EVO_AUTH_SERVICE_URL']
@@ -32,7 +31,7 @@ RSpec.describe 'API::V1::Accounts::MacrosController', type: :request do
           success: true,
           data: {
             user: { id: user.id, email: user.email },
-            accounts: [{ id: account.id }]
+            accounts: [{ id: account_id }]
           }
         }.to_json,
         headers: { 'Content-Type' => 'application/json' }
@@ -40,7 +39,7 @@ RSpec.describe 'API::V1::Accounts::MacrosController', type: :request do
 
     permission_check_url = "#{base_url}/api/v1/users/#{user.id}/check_permission"
     stub_request(:post, permission_check_url)
-      .with(headers: { 'account-id' => account.id.to_s })
+      .with(headers: { 'account-id' => account_id.to_s })
       .to_return(
         status: 200,
         body: {
@@ -51,11 +50,10 @@ RSpec.describe 'API::V1::Accounts::MacrosController', type: :request do
       )
 
     put '/api/v1/profile/set_active_account',
-        params: { profile: { account_id: account.id } },
+        params: { profile: { account_id: account_id } },
         headers: headers,
         as: :json
 
-    Current.account = account
     Current.user = user
   end
 
@@ -75,7 +73,7 @@ RSpec.describe 'API::V1::Accounts::MacrosController', type: :request do
         json_response = JSON.parse(response.body)
         expect(json_response.dig('data', 'visibility')).to eq('global')
 
-        created_macro = account.macros.find_by(name: 'Test Macro')
+        created_macro = Macro.find_by(name: 'Test Macro')
         expect(created_macro).to be_present
         expect(created_macro.visibility).to eq('global')
       end
@@ -94,7 +92,7 @@ RSpec.describe 'API::V1::Accounts::MacrosController', type: :request do
         json_response = JSON.parse(response.body)
         expect(json_response.dig('data', 'visibility')).to eq('personal')
 
-        created_macro = account.macros.find_by(name: 'Personal Macro')
+        created_macro = Macro.find_by(name: 'Personal Macro')
         expect(created_macro).to be_present
         expect(created_macro.visibility).to eq('personal')
       end
@@ -103,7 +101,7 @@ RSpec.describe 'API::V1::Accounts::MacrosController', type: :request do
 
   describe 'PUT /api/v1/macros/:id' do
     let!(:macro) do
-      account.macros.create!(
+      Macro.create!(
         name: 'Existing Macro',
         visibility: :personal,
         created_by: user,

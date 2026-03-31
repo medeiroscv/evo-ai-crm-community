@@ -25,7 +25,7 @@ class Api::V1::Accounts::DashboardAppsController < Api::V1::Accounts::BaseContro
   end
 
   def create
-    @dashboard_app = Current.account.dashboard_apps.create!(
+    @dashboard_app = DashboardApp.create!(
       permitted_payload.merge(user_id: Current.user.id)
     )
     
@@ -72,7 +72,7 @@ class Api::V1::Accounts::DashboardAppsController < Api::V1::Accounts::BaseContro
   private
 
   def fetch_dashboard_apps
-    @dashboard_apps = Current.account.dashboard_apps
+    @dashboard_apps = DashboardApp.all
   end
 
   def fetch_dashboard_app

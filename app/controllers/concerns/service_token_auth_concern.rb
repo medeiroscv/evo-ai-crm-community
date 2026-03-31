@@ -18,7 +18,7 @@ module ServiceTokenAuthConcern
   def authenticate_service_token!
     Rails.logger.info "ServiceToken: Starting service token authentication"
     Rails.logger.info "ServiceToken: Token present? #{service_token_present?}"
-    
+
     unless service_token_present?
       Rails.logger.warn "ServiceToken: No service token provided"
       render_service_token_unauthorized('Service token required for internal API access')
@@ -50,27 +50,16 @@ module ServiceTokenAuthConcern
     # Set a flag to indicate this is a service-to-service call
     Current.service_authenticated = true
     Current.authentication_method = 'service_token'
-    
+
     Rails.logger.info "ServiceToken: Set service authentication context"
-    
+
     # For service-to-service calls, we might not have a specific user context
     # Instead, we operate with elevated privileges for internal operations
-    
-    # If an account_id is provided in the request, set the account context
-    if params[:account_id].present?
-      account = Account.find_by(id: params[:account_id])
-      if account
-        Current.account = account
-        Rails.logger.info "ServiceToken: Set account context: #{account.id} - #{account.name}"
-      else
-        Rails.logger.warn "ServiceToken: Account #{params[:account_id]} not found"
-      end
-    end
   end
 
   def render_service_token_unauthorized(message = 'Unauthorized')
-    render json: { 
-      error: message, 
+    render json: {
+      error: message,
       code: 'SERVICE_TOKEN_UNAUTHORIZED',
       timestamp: Time.current.iso8601
     }, status: :unauthorized

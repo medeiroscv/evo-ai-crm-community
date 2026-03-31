@@ -68,7 +68,7 @@ class Api::BaseController < ApplicationController
   end
 
   def check_admin_authorization?
-    raise Pundit::NotAuthorizedError unless Current.account_user.administrator?
+    raise Pundit::NotAuthorizedError unless Current.user&.role == 'administrator'
   end
 
   def apply_pagination

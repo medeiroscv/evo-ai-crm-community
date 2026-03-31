@@ -82,7 +82,7 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
     end
 
     ActiveRecord::Base.transaction do
-      import = Current.account.data_imports.create!(data_type: 'contacts')
+      import = DataImport.all.create!(data_type: 'contacts')
       import.import_file.attach(params[:import_file])
     end
 
@@ -92,14 +92,14 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
   def export
     column_names = params['column_names']
     filter_params = { :payload => params.permit!['payload'], :label => params.permit!['label'] }
-    Account::ContactsExportJob.perform_later(Current.account.id, Current.user.id, column_names, filter_params)
+    Account::ContactsExportJob.perform_later(nil, Current.user.id, column_names, filter_params)
     success_response(data: {}, message: I18n.t('errors.contacts.export.success'), status: :ok)
   end
 
   # returns online contacts
   def active
-    contacts = Current.account.contacts.where(id: ::OnlineStatusTracker
-                  .get_available_contact_ids(Current.account.id))
+    contacts = Contact.where(id: ::OnlineStatusTracker
+                  .get_available_contact_ids)
     @contacts_count = contacts.count
     @contacts = fetch_contacts(contacts)
 
@@ -120,7 +120,7 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
   end
 
   def filter
-    result = ::Contacts::FilterService.new(Current.account, Current.user, params.permit!).perform
+    result = ::Contacts::FilterService.new(nil, Current.user, params.permit!).perform
     contacts = result[:contacts]
     @contacts_count = result[:count]
     @contacts = fetch_contacts(contacts)
@@ -177,7 +177,7 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
     return if render_invalid_create_labels_error
 
     ActiveRecord::Base.transaction do
-      @contact = Current.account.contacts.new(contact_create_params)
+      @contact = Contact.all.new(contact_create_params)
       @contact.save!
       process_company_associations
       @contact_inbox = build_contact_inbox
@@ -217,7 +217,7 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
 
   def destroy
     if ::OnlineStatusTracker.get_presence(
-      @contact.account.id, 'Contact', @contact.id
+      'Contact', @contact.id
     )
       return error_response(
         ApiErrorCodes::OPERATION_NOT_ALLOWED,
@@ -276,7 +276,7 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
   end
 
   def companies_list
-    companies = Current.account.contacts.resolved_contacts.where(type: 'company').select(:id, :name, :type, :location, :country_code).order(:name)
+    companies = Contact.all.resolved_contacts.where(type: 'company').select(:id, :name, :type, :location, :country_code).order(:name)
 
     success_response(
       data: companies.map { |company| { id: company.id, name: company.name } },
@@ -335,8 +335,8 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
   def listable_contacts
     return @listable_contacts if @listable_contacts
 
-    contacts_with_identity = Current.account.contacts.resolved_contacts
-    contacts_with_name = Current.account.contacts.where("contacts.name IS NOT NULL AND BTRIM(contacts.name) <> ''")
+    contacts_with_identity = Contact.all.resolved_contacts
+    contacts_with_name = Contact.all.where("contacts.name IS NOT NULL AND BTRIM(contacts.name) <> ''")
     @listable_contacts = contacts_with_identity.or(contacts_with_name)
 
     @listable_contacts = @listable_contacts.where(type: params[:type]) if params[:type].present?
@@ -351,7 +351,7 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
   def resolved_contacts
     return @resolved_contacts if @resolved_contacts
 
-    @resolved_contacts = Current.account.contacts.resolved_contacts
+    @resolved_contacts = Contact.all.resolved_contacts
 
     @resolved_contacts = @resolved_contacts.where(type: params[:type]) if params[:type].present?
 
@@ -382,7 +382,7 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
   def build_contact_inbox
     return if params[:inbox_id].blank?
 
-    inbox = Current.account.inboxes.find(params[:inbox_id])
+    inbox = Inbox.all.find(params[:inbox_id])
     ContactInboxBuilder.new(
       contact: @contact,
       inbox: inbox,
@@ -488,12 +488,11 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
     # Add new associations
     if ids_to_add.any?
       # Validate companies exist and belong to current account
-      companies_to_add = Current.account.contacts.where(id: ids_to_add, type: 'company')
+      companies_to_add = Contact.all.where(id: ids_to_add, type: 'company')
 
       companies_to_add.each do |company|
         @contact.contact_companies.create!(
-          company: company,
-          account: Current.account
+          company: company
         )
       end
 
@@ -512,12 +511,12 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
   end
 
   def fetch_contact
-    @contact = Current.account.contacts.includes(:labels, contact_inboxes: [:inbox]).find(params[:id])
+    @contact = Contact.all.includes(:labels, contact_inboxes: [:inbox]).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     error_response(
       ApiErrorCodes::CONTACT_NOT_FOUND,
       "Contact with ID '#{params[:id]}' not found",
-      details: { contact_id: params[:id], account_id: Current.account.id },
+      details: { contact_id: params[:id] },
       status: :not_found
     )
   end

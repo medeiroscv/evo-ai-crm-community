@@ -64,8 +64,6 @@ class User < ApplicationRecord
   include UserAttributeHelpers
 
   # Evolution-specific relationships only
-  has_many :account_users, dependent: :destroy_async
-  has_many :accounts, through: :account_users
   has_many :assigned_conversations, foreign_key: 'assignee_id', class_name: 'Conversation', dependent: :nullify, inverse_of: :assignee
   has_many :csat_survey_responses, foreign_key: 'assigned_agent_id', dependent: :nullify, inverse_of: :assigned_agent
   has_many :conversation_participants, dependent: :destroy_async
@@ -131,7 +129,7 @@ class User < ApplicationRecord
   end
 
   def send_devise_notification(notification, *)
-    devise_mailer.with(account: Current.account).send(notification, self, *).deliver_later
+    devise_mailer.send(notification, self, *).deliver_later
   end
 
   def set_password_and_uid
@@ -139,7 +137,7 @@ class User < ApplicationRecord
   end
 
   def assigned_inboxes
-    administrator? ? Current.account.inboxes : inboxes.where(account_id: Current.account.id)
+    administrator? ? Inbox.all : inboxes
   end
 
   def serializable_hash(options = nil)

@@ -4,9 +4,8 @@ module Dashboard
   class CustomerDashboardService
     WEEKDAY_LABELS = %w[Dom Seg Ter Qua Qui Sex Sab].freeze
 
-    def initialize(account:, params:)
-      @account = account
-      @filters = Dashboard::FiltersBuilder.new(account: account, params: params)
+    def initialize(account: nil, params:)
+      @filters = Dashboard::FiltersBuilder.new(params: params)
     end
 
     def call
@@ -143,7 +142,7 @@ module Dashboard
       conversations = scoped_conversations
       total_conversations = conversations.count
       value_by_inbox_id = pipeline_value_by_inbox
-      inboxes = @account.inboxes.where(id: conversations.select(:inbox_id).distinct).index_by(&:id)
+      inboxes = Inbox.where(id: conversations.select(:inbox_id).distinct).index_by(&:id)
 
       conversations.group(:inbox_id).count.map do |inbox_id, count|
         {
@@ -164,12 +163,9 @@ module Dashboard
                                                       .where.not(user_id: nil)
                                                       .group(:user_id)
                                                       .average(:value)
-      users = @account.users.where(id: conversations_by_agent.keys).index_by(&:id)
-      account_users = @account.account_users.where(user_id: conversations_by_agent.keys).index_by(&:user_id)
-
+      users = User.where(id: conversations_by_agent.keys).index_by(&:id)
       conversations_by_agent.map do |agent_id, count|
         user = users[agent_id]
-        account_user = account_users[agent_id]
 
         {
           id: agent_id,
@@ -177,7 +173,7 @@ module Dashboard
           conversations: count,
           percentage: percentage(count, total_conversations),
           avg_first_response_time_seconds: first_response_by_agent[agent_id].to_f.round(2),
-          availability_status: account_user&.availability_status || 'offline'
+          availability_status: user&.availability_status || 'offline'
         }
       end.sort_by { |agent| -agent[:conversations] }
     end
@@ -188,7 +184,7 @@ module Dashboard
       total_bot_messages = bot_messages.count
       conversations_by_bot = bot_messages.group(:sender_id).pluck(:sender_id, Arel.sql('COUNT(DISTINCT conversation_id)')).to_h
       messages_by_bot = bot_messages.group(:sender_id).count
-      bots = @account.agent_bots.where(id: messages_by_bot.keys).index_by(&:id)
+      bots = AgentBot.where(id: messages_by_bot.keys).index_by(&:id)
 
       messages_by_bot.map do |bot_id, count|
         bot = bots[bot_id]
@@ -344,31 +340,31 @@ module Dashboard
     end
 
     def scoped_conversations
-      @scoped_conversations ||= @filters.conversation_scope(@account.conversations)
+      @scoped_conversations ||= @filters.conversation_scope(Conversation.all)
     end
 
     def scoped_reporting_events
-      @scoped_reporting_events ||= @filters.reporting_events_scope(@account.reporting_events)
+      @scoped_reporting_events ||= @filters.reporting_events_scope(ReportingEvent.all)
     end
 
     def scoped_conversations_current
-      @scoped_conversations_current ||= @filters.conversation_scope(@account.conversations, apply_time_range: false)
+      @scoped_conversations_current ||= @filters.conversation_scope(Conversation.all, apply_time_range: false)
     end
 
     def scoped_pipeline_items
-      @scoped_pipeline_items ||= @filters.pipeline_items_scope(@account.pipeline_items)
+      @scoped_pipeline_items ||= @filters.pipeline_items_scope(PipelineItem.all)
     end
 
     def scoped_pipeline_tasks
-      @scoped_pipeline_tasks ||= @filters.pipeline_tasks_scope(@account.pipeline_tasks)
+      @scoped_pipeline_tasks ||= @filters.pipeline_tasks_scope(PipelineTask.all)
     end
 
     def scoped_messages
-      @scoped_messages ||= @filters.messages_scope(@account.messages)
+      @scoped_messages ||= @filters.messages_scope(Message.all)
     end
 
     def scoped_csat_responses
-      @scoped_csat_responses ||= @filters.csat_scope(@account.csat_survey_responses)
+      @scoped_csat_responses ||= @filters.csat_scope(CsatSurveyResponse.all)
     end
   end
 end

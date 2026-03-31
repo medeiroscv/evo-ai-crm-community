@@ -11,8 +11,7 @@ class Api::V1::Internal::SystemController < Api::ServiceController
       services: {
         redis: redis_status,
         postgres: postgres_status
-      },
-      account_id: Current.account&.id
+      }
     }
   end
 

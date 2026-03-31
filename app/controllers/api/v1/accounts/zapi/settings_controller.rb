@@ -223,7 +223,6 @@ class Api::V1::Accounts::Zapi::SettingsController < Api::V1::Accounts::BaseContr
     Channel::Whatsapp.joins(:inbox)
                      .where(provider: 'zapi')
                      .where('provider_config @> ?', { instance_id: instance_id }.to_json)
-                     .where(inboxes: { account_id: Current.account.id })
                      .first
   end
 

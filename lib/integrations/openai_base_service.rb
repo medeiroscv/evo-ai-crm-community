@@ -67,8 +67,8 @@ class Integrations::OpenaiBaseService
     conversation_id = event.dig('data', 'conversation_display_id')
     return nil if conversation_id.blank?
 
-    @conversation ||= hook.account.conversations.find_by(id: conversation_id) ||
-                      hook.account.conversations.find_by(display_id: conversation_id)
+    @conversation ||= Conversation.find_by(id: conversation_id) ||
+                      Conversation.find_by(display_id: conversation_id)
   end
 
   def valid_event_name?

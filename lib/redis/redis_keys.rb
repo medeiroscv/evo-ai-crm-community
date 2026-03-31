@@ -16,13 +16,11 @@ module Redis::RedisKeys
 
   ## Online Status Keys
   # hash containing user_id key and status as value
-  ONLINE_STATUS = 'ONLINE_STATUS::%<account_id>s'.freeze
-  # sorted set storing online presense of account contacts
-  ONLINE_PRESENCE_CONTACTS = 'ONLINE_PRESENCE::%<account_id>s::CONTACTS'.freeze
-  # sorted set storing online presense of account users
-  ONLINE_PRESENCE_USERS = 'ONLINE_PRESENCE::%<account_id>s::USERS'.freeze
-  # sorted set storing online presence of all users across accounts
-  ONLINE_PRESENCE_USERS_GLOBAL = 'ONLINE_PRESENCE::USERS::GLOBAL'.freeze
+  ONLINE_STATUS = 'ONLINE_STATUS'.freeze
+  # sorted set storing online presence of contacts
+  ONLINE_PRESENCE_CONTACTS = 'ONLINE_PRESENCE::CONTACTS'.freeze
+  # sorted set storing online presence of users
+  ONLINE_PRESENCE_USERS = 'ONLINE_PRESENCE::USERS'.freeze
   # global counters storing total messages by direction
   CRM_MESSAGES_TOTAL_INBOUND = 'CRM_MESSAGES_TOTAL::INBOUND'.freeze
   CRM_MESSAGES_TOTAL_OUTBOUND = 'CRM_MESSAGES_TOTAL::OUTBOUND'.freeze

@@ -26,8 +26,8 @@ class ContactMergeAction
     raise StandardError, 'contact does not belong to the account'
   end
 
-  def belongs_to_account?(contact)
-    @account.id == contact.account_id
+  def belongs_to_account?(_contact)
+    true
   end
 
   def merge_conversations
@@ -35,7 +35,7 @@ class ContactMergeAction
   end
 
   def merge_contact_notes
-    Note.where(contact_id: @mergee_contact.id, account_id: @mergee_contact.account_id).update(contact_id: @base_contact.id)
+    Note.where(contact_id: @mergee_contact.id).update(contact_id: @base_contact.id)
   end
 
   def merge_messages

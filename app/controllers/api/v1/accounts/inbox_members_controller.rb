@@ -66,7 +66,7 @@ class Api::V1::Accounts::InboxMembersController < Api::V1::Accounts::BaseControl
   private
 
   def fetch_updated_agents
-    @agents = Current.account.users.where(id: @inbox.members.select(:user_id))
+    @agents = User.where(id: @inbox.members.select(:user_id))
   end
 
   def update_agents_list
@@ -93,6 +93,6 @@ class Api::V1::Accounts::InboxMembersController < Api::V1::Accounts::BaseControl
   end
 
   def fetch_inbox
-    @inbox = Current.account.inboxes.find(params[:inbox_id])
+    @inbox = Inbox.find(params[:inbox_id])
   end
 end

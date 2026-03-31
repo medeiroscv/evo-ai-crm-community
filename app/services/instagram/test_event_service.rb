@@ -49,7 +49,6 @@ class Instagram::TestEventService
 
   def test_message_params
     {
-      account_id: @conversation.account_id,
       inbox_id: @conversation.inbox_id,
       message_type: 'incoming',
       source_id: @messaging[:message][:mid],
@@ -68,7 +67,6 @@ class Instagram::TestEventService
 
   def conversation_params
     {
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       contact_id: @contact.id,
       additional_attributes: {

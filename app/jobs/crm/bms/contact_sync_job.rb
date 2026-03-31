@@ -1,11 +1,10 @@
 class Crm::Bms::ContactSyncJob < ApplicationJob
   queue_as :integrations
 
-  def perform(contact_id, account_id, action = 'sync')
-    @contact = Contact.find_by(id: contact_id, account_id: account_id)
+  def perform(contact_id, _account_id = nil, action = 'sync')
+    @contact = Contact.find_by(id: contact_id)
     return unless @contact
 
-    @account = Account.find(account_id)
     @hook = find_bms_hook
     return unless @hook&.feature_allowed?
 
@@ -45,6 +44,6 @@ class Crm::Bms::ContactSyncJob < ApplicationJob
   end
 
   def find_bms_hook
-    @account.hooks.where(app_id: 'bms').first
+    Integrations::Hook.where(app_id: 'bms').first
   end
 end

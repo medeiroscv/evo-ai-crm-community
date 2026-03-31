@@ -25,9 +25,6 @@
 #  index_pipelines_on_custom_fields                     (custom_fields) USING gin
 #
 class Pipeline < ApplicationRecord
-  include AccountCacheRevalidator
-
-  belongs_to :account
   belongs_to :created_by, class_name: 'User'
 
   has_many :pipeline_stages, -> { order(:position) }, dependent: :destroy, inverse_of: :pipeline
@@ -35,7 +32,7 @@ class Pipeline < ApplicationRecord
   has_many :conversations, through: :pipeline_items
   has_many :pipeline_service_definitions, dependent: :nullify
 
-  validates :name, presence: true, uniqueness: { scope: :account_id }
+  validates :name, presence: true, uniqueness: true
   validates :pipeline_type, inclusion: { in: %w[sales support onboarding custom marketing] }
 
   enum visibility: { private: 0, team: 1, public: 2 }, _prefix: :visibility
@@ -99,7 +96,7 @@ class Pipeline < ApplicationRecord
 
   def ensure_single_default_per_account
     # Desativa outros pipelines default quando este for ativado
-    Pipeline.where(account_id: account_id, is_default: true)
+    Pipeline.where(is_default: true)
             .where.not(id: id)
             .update_all(is_default: false)
   end

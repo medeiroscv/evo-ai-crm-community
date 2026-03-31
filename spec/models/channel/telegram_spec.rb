@@ -3,9 +3,8 @@
 require 'rails_helper'
 
 RSpec.describe Channel::Telegram, type: :model do
-  let(:account) { Account.create!(name: 'Test Account') }
   let(:token) { "telegram-token-#{SecureRandom.hex(4)}" }
-  let(:channel) { described_class.new(account: account, bot_token: token) }
+  let(:channel) { described_class.new(bot_token: token) }
 
   describe 'token validation and webhook setup errors' do
     context 'when token is invalid' do

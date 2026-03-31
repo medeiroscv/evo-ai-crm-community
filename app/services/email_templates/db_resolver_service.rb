@@ -60,9 +60,7 @@ class ::EmailTemplates::DBResolverService < ActionView::Resolver
   end
 
   def find_account_template
-    return unless Current.account
-
-    email_channels = Channel::Email.where(account_id: Current.account.id)
+    email_channels = Channel::Email.all
     return nil if email_channels.empty?
 
     MessageTemplate.where(channel: email_channels)

@@ -56,12 +56,12 @@ class Integrations::Openai::GlobalProcessorService
     # Try to find by UUID first (mobile app and frontend send UUID)
     # Fallback to display_id for backward compatibility
     conversation_id = event['data']['conversation_display_id']
-    @conversation ||= account.conversations.find_by(id: conversation_id) ||
-                      account.conversations.find_by(display_id: conversation_id)
+    @conversation ||= Conversation.find_by(id: conversation_id) ||
+                      Conversation.find_by(display_id: conversation_id)
   end
 
   def account_language
-    @account_language ||= account.locale_english_name
+    @account_language ||= GlobalConfigService.load('DEFAULT_LOCALE', 'english')
   end
 
   def language_instruction

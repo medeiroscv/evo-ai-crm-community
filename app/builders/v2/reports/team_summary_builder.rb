@@ -1,5 +1,5 @@
 class V2::Reports::TeamSummaryBuilder < V2::Reports::BaseSummaryBuilder
-  pattr_initialize [:account!, :params!]
+  pattr_initialize [:account, :params!]
 
   private
 
@@ -7,15 +7,15 @@ class V2::Reports::TeamSummaryBuilder < V2::Reports::BaseSummaryBuilder
               :avg_resolution_time, :avg_first_response_time, :avg_reply_time
 
   def fetch_conversations_count
-    account.conversations.where(created_at: range).group(:team_id).count
+    Conversation.where(created_at: range).group(:team_id).count
   end
 
   def reporting_events
-    @reporting_events ||= account.reporting_events.where(created_at: range).joins(:conversation)
+    @reporting_events ||= ReportingEvent.where(created_at: range).joins(:conversation)
   end
 
   def prepare_report
-    account.teams.map do |team|
+    Team.all.map do |team|
       build_team_stats(team)
     end
   end

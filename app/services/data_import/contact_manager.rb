@@ -1,6 +1,5 @@
 class DataImport::ContactManager
-  def initialize(account)
-    @account = account
+  def initialize(_account = nil)
   end
 
   def build_contact(params)
@@ -13,7 +12,7 @@ class DataImport::ContactManager
     contact = find_existing_contact(params)
     contact_params = params.slice(:email, :identifier, :phone_number)
     contact_params[:phone_number] = format_phone_number(contact_params[:phone_number]) if contact_params[:phone_number].present?
-    contact ||= @account.contacts.new(contact_params)
+    contact ||= Contact.new(contact_params)
     contact
   end
 
@@ -29,19 +28,19 @@ class DataImport::ContactManager
   def find_contact_by_identifier(params)
     return unless params[:identifier]
 
-    @account.contacts.find_by(identifier: params[:identifier])
+    Contact.find_by(identifier: params[:identifier])
   end
 
   def find_contact_by_email(params)
     return unless params[:email]
 
-    @account.contacts.from_email(params[:email])
+    Contact.from_email(params[:email])
   end
 
   def find_contact_by_phone_number(params)
     return unless params[:phone_number]
 
-    @account.contacts.find_by(phone_number: format_phone_number(params[:phone_number]))
+    Contact.find_by(phone_number: format_phone_number(params[:phone_number]))
   end
 
   def format_phone_number(phone_number)

@@ -3,10 +3,9 @@
 require 'rails_helper'
 
 RSpec.describe PipelineItem, type: :model do
-  let(:account) { Account.create!(name: 'Test Account') }
-  let(:pipeline) { Pipeline.create!(account: account, name: 'Test Pipeline', pipeline_type: 'lead', created_by: User.create!(email: 'test@example.com', name: 'Test User')) }
+  let(:pipeline) { Pipeline.create!(name: 'Test Pipeline', pipeline_type: 'lead', created_by: User.create!(email: 'test@example.com', name: 'Test User')) }
   let(:pipeline_stage) { PipelineStage.create!(pipeline: pipeline, name: 'Stage 1', position: 1) }
-  let(:contact) { Contact.create!(account: account, name: 'Test Contact', email: 'contact@example.com') }
+  let(:contact) { Contact.create!(name: 'Test Contact', email: 'contact@example.com') }
 
   describe 'validations' do
     it 'requires either conversation_id or contact_id' do
@@ -20,10 +19,9 @@ RSpec.describe PipelineItem, type: :model do
 
     it 'does not allow both conversation_id and contact_id' do
       conversation = Conversation.create!(
-        account: account,
-        inbox: Inbox.create!(account: account, name: 'Test Inbox'),
+        inbox: Inbox.create!(name: 'Test Inbox'),
         contact: contact,
-        contact_inbox: ContactInbox.create!(contact: contact, inbox: Inbox.create!(account: account, name: 'Test Inbox'), account: account)
+        contact_inbox: ContactInbox.create!(contact: contact, inbox: Inbox.create!(name: 'Test Inbox'))
       )
       item = PipelineItem.new(
         pipeline: pipeline,
@@ -46,10 +44,9 @@ RSpec.describe PipelineItem, type: :model do
 
     it 'validates with conversation_id only' do
       conversation = Conversation.create!(
-        account: account,
-        inbox: Inbox.create!(account: account, name: 'Test Inbox'),
+        inbox: Inbox.create!(name: 'Test Inbox'),
         contact: contact,
-        contact_inbox: ContactInbox.create!(contact: contact, inbox: Inbox.create!(account: account, name: 'Test Inbox'), account: account)
+        contact_inbox: ContactInbox.create!(contact: contact, inbox: Inbox.create!(name: 'Test Inbox'))
       )
       item = PipelineItem.new(
         pipeline: pipeline,
@@ -75,10 +72,9 @@ RSpec.describe PipelineItem, type: :model do
     end
 
     it 'detects orphaned item when conversation is missing' do
-      inbox = Inbox.create!(account: account, name: 'Test Inbox')
-      contact_inbox = ContactInbox.create!(contact: contact, inbox: inbox, account: account)
+      inbox = Inbox.create!(name: 'Test Inbox')
+      contact_inbox = ContactInbox.create!(contact: contact, inbox: inbox)
       conversation = Conversation.create!(
-        account: account,
         inbox: inbox,
         contact: contact,
         contact_inbox: contact_inbox

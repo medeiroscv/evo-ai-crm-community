@@ -1,8 +1,7 @@
 class AutomationRules::ActionService < ActionService
-  def initialize(rule, account, conversation)
+  def initialize(rule, _account = nil, conversation = nil)
     super(conversation)
     @rule = rule
-    @account = account
     Current.executed_by = rule
   end
 
@@ -15,7 +14,7 @@ class AutomationRules::ActionService < ActionService
         send(action[:action_name], action[:action_params])
       rescue StandardError => e
         Rails.logger.error "Automation Rule #{@rule.id}: Error executing action #{action[:action_name]}: #{e.message}"
-        EvolutionExceptionTracker.new(e, account: @account).capture_exception
+        EvolutionExceptionTracker.new(e).capture_exception
       end
     end
   ensure
@@ -53,7 +52,7 @@ class AutomationRules::ActionService < ActionService
 
     # Se um inbox específico foi fornecido, validar se a conversa pertence a esse inbox
     if inbox_id
-      inbox = @account.inboxes.find_by(id: inbox_id)
+      inbox = Inbox.find_by(id: inbox_id)
       if inbox && @conversation.inbox != inbox
         Rails.logger.warn "Automation Rule #{@rule.id}: Inbox mismatch. Conversation inbox: #{@conversation.inbox.id}, Requested inbox: #{inbox_id}"
         # Opcionalmente, pode escolher não enviar ou enviar pelo inbox da conversa
@@ -93,7 +92,7 @@ class AutomationRules::ActionService < ActionService
     return unless pipeline_params[0]
 
     pipeline_id = extract_pipeline_id(pipeline_params[0])
-    pipeline = @account.pipelines.find_by(id: pipeline_id)
+    pipeline = Pipeline.find_by(id: pipeline_id)
 
     return unless pipeline
 
@@ -226,8 +225,7 @@ class AutomationRules::ActionService < ActionService
     due_in = params[:due_in]
 
     task = pipeline_item.tasks.create!(
-      account: @account,
-      created_by_id: @rule.account.administrators.first.id,
+      created_by_id: User.where(type: 'SuperAdmin').first&.id,
       assigned_to_id: assigned_to_id,
       title: title,
       description: description,
@@ -239,7 +237,7 @@ class AutomationRules::ActionService < ActionService
     Rails.logger.info "Automation Rule #{@rule.id}: Created task #{task.id} for conversation #{@conversation.id}"
   rescue StandardError => e
     Rails.logger.error "Automation Rule #{@rule.id}: Error creating pipeline task: #{e.message}"
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
   end
   # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
 

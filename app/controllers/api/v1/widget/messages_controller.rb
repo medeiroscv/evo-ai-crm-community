@@ -44,7 +44,6 @@ class Api::V1::Widget::MessagesController < Api::V1::Widget::BaseController
 
     params[:message][:attachments].each do |uploaded_attachment|
       attachment = @message.attachments.new(
-        account_id: @message.account_id,
         file: uploaded_attachment
       )
 

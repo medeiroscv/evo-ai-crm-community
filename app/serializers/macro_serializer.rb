@@ -21,7 +21,6 @@ module MacroSerializer
     {
       id: macro.id,
       name: macro.name,
-      account_id: macro.account_id,
       visibility: macro.visibility,
       actions: macro.actions,
       created_by_id: macro.created_by_id,

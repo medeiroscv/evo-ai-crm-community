@@ -9,7 +9,7 @@ class ParticipationListener < BaseListener
   # We have observed race conditions triggering these errors
   # example: Assignment happening via automation, while auto assignment is also configured.
   rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid
-    Rails.logger.warn "Failed to create conversation participant for account #{conversation.account.id} " \
+    Rails.logger.warn "Failed to create conversation participant" \
                       ": user #{conversation.assignee_id} : conversation #{conversation.id}"
   end
 end

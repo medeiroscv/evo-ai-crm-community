@@ -121,7 +121,6 @@ class Whatsapp::IncomingMessageZapiService
                      contact_inbox.conversations.where.not(status: :resolved).last
                    end
     conversation ||= Conversation.create!(
-      account_id: inbox.account_id,
       inbox_id: inbox.id,
       contact_id: contact_inbox.contact_id,
       contact_inbox_id: contact_inbox.id
@@ -245,7 +244,6 @@ class Whatsapp::IncomingMessageZapiService
   def create_message(conversation:, contact_inbox:, content:, message_id:, timestamp:)
     message = conversation.messages.new(
       content: content,
-      account_id: inbox.account_id,
       inbox_id: inbox.id,
       message_type: :incoming,
       sender: contact_inbox.contact,
@@ -278,11 +276,11 @@ class Whatsapp::IncomingMessageZapiService
     return unless sent_message
 
     # Find the original message being replied to
-    reply_msg = Message.where(account_id: inbox.account_id)
+    reply_msg = Message
                       .where("external_source_ids ->> 'zapi_message_id' = ?", reference_message_id).first
-    reply_msg ||= Message.where(account_id: inbox.account_id)
+    reply_msg ||= Message
                          .where("external_source_ids ->> 'zapi_zaap_id' = ?", reference_message_id).first
-    reply_msg ||= Message.find_by(account_id: inbox.account_id, source_id: reference_message_id)
+    reply_msg ||= Message.find_by(source_id: reference_message_id)
 
     if reply_msg && sent_message.content_attributes[:in_reply_to].blank?
       attrs = sent_message.content_attributes.merge(
@@ -305,11 +303,11 @@ class Whatsapp::IncomingMessageZapiService
 
     # If not found in conversation, search in account messages
     if reply_msg.nil?
-      reply_msg = Message.where(account_id: inbox.account_id)
+      reply_msg = Message
                         .where("external_source_ids ->> 'zapi_message_id' = ?", reference_message_id).first
-      reply_msg ||= Message.where(account_id: inbox.account_id)
+      reply_msg ||= Message
                            .where("external_source_ids ->> 'zapi_zaap_id' = ?", reference_message_id).first
-      reply_msg ||= Message.find_by(account_id: inbox.account_id, source_id: reference_message_id)
+      reply_msg ||= Message.find_by(source_id: reference_message_id)
     end
 
     if reply_msg
@@ -400,7 +398,6 @@ class Whatsapp::IncomingMessageZapiService
     filename ||= File.basename(io.path)
 
     message.attachments.new(
-      account_id: message.account_id,
       file_type: file_content_type(file_type),
       file: {
         io: io,
@@ -416,7 +413,6 @@ class Whatsapp::IncomingMessageZapiService
     location_name = [location_data[:name], location_data[:address]].compact.join(', ')
 
     message.attachments.new(
-      account_id: message.account_id,
       file_type: :location,
       coordinates_lat: location_data[:latitude],
       coordinates_long: location_data[:longitude],
@@ -431,7 +427,6 @@ class Whatsapp::IncomingMessageZapiService
 
     phones.each do |phone|
       message.attachments.new(
-        account_id: message.account_id,
         file_type: file_content_type('contacts'),
         fallback_title: phone[:phone].to_s,
         meta: {

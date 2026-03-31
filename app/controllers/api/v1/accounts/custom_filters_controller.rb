@@ -25,7 +25,7 @@ class Api::V1::Accounts::CustomFiltersController < Api::V1::Accounts::BaseContro
   end
 
   def create
-    @custom_filter = Current.account.custom_filters.new(
+    @custom_filter = CustomFilter.new(
       permitted_payload.merge(user: Current.user)
     )
     
@@ -72,14 +72,14 @@ class Api::V1::Accounts::CustomFiltersController < Api::V1::Accounts::BaseContro
   private
 
   def fetch_custom_filters
-    @custom_filters = Current.account.custom_filters.where(
+    @custom_filters = CustomFilter.where(
       user: Current.user,
       filter_type: permitted_params[:filter_type] || DEFAULT_FILTER_TYPE
     )
   end
 
   def fetch_custom_filter
-    @custom_filter = Current.account.custom_filters.where(
+    @custom_filter = CustomFilter.where(
       user: Current.user
     ).find(permitted_params[:id])
   rescue ActiveRecord::RecordNotFound

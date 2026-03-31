@@ -3,13 +3,12 @@
 require 'rails_helper'
 
 RSpec.describe PipelineItem, 'services catalog integration', type: :model do
-  let(:account) { Account.create!(name: 'Test Account') }
   let(:user) { User.create!(email: 'svc-test@example.com', name: 'Test User') }
   let(:pipeline) do
-    Pipeline.create!(account: account, name: 'Test Pipeline', pipeline_type: 'sales', created_by: user)
+    Pipeline.create!(name: 'Test Pipeline', pipeline_type: 'sales', created_by: user)
   end
   let(:stage) { PipelineStage.create!(pipeline: pipeline, name: 'Stage 1', position: 1) }
-  let(:contact) { Contact.create!(account: account, name: 'Test Contact', email: 'contact@test.com') }
+  let(:contact) { Contact.create!(name: 'Test Contact', email: 'contact@test.com') }
 
   describe '#normalize_services_data!' do
     it 'creates catalog entry when saving service without service_definition_id' do
@@ -28,7 +27,6 @@ RSpec.describe PipelineItem, 'services catalog integration', type: :model do
       expect(catalog.name).to eq('Consulting')
       expect(catalog.default_value).to eq(150.0)
       expect(catalog.pipeline).to eq(pipeline)
-      expect(catalog.account).to eq(account)
     end
 
     it 'links service_definition_id to the service data' do
@@ -47,7 +45,7 @@ RSpec.describe PipelineItem, 'services catalog integration', type: :model do
 
     it 'reuses existing catalog entry for same service name' do
       existing = pipeline.pipeline_service_definitions.create!(
-        name: 'Consulting', default_value: 100.00, currency: 'BRL', account: account
+        name: 'Consulting', default_value: 100.00, currency: 'BRL'
       )
 
       item = PipelineItem.new(
@@ -67,7 +65,7 @@ RSpec.describe PipelineItem, 'services catalog integration', type: :model do
 
     it 'preserves service_definition_id when already present' do
       existing = pipeline.pipeline_service_definitions.create!(
-        name: 'Consulting', default_value: 100.00, currency: 'BRL', account: account
+        name: 'Consulting', default_value: 100.00, currency: 'BRL'
       )
 
       item = PipelineItem.create!(

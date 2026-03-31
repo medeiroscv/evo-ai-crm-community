@@ -138,7 +138,6 @@ class AgentBots::SegmentedMessageCreator
 
     # Para imagens, criamos uma mensagem com attachment
     message = conversation.messages.create!(
-      account: conversation.account,
       inbox: conversation.inbox,
       message_type: :outgoing,
       content: content,
@@ -164,7 +163,6 @@ class AgentBots::SegmentedMessageCreator
     end
 
     message = conversation.messages.create!(
-      account: conversation.account,
       inbox: conversation.inbox,
       message_type: :outgoing,
       content: content,
@@ -190,7 +188,6 @@ class AgentBots::SegmentedMessageCreator
     end
 
     message = conversation.messages.create!(
-      account: conversation.account,
       inbox: conversation.inbox,
       message_type: :outgoing,
       content: content,
@@ -216,7 +213,6 @@ class AgentBots::SegmentedMessageCreator
     end
 
     message = conversation.messages.create!(
-      account: conversation.account,
       inbox: conversation.inbox,
       message_type: :outgoing,
       content: content,
@@ -229,7 +225,6 @@ class AgentBots::SegmentedMessageCreator
 
   def create_single_message(content, conversation)
     message_attributes = {
-      account: conversation.account,
       inbox: conversation.inbox,
       message_type: :outgoing,
       content: content,

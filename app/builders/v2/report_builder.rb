@@ -1,13 +1,12 @@
 class V2::ReportBuilder
   include DateRangeHelper
   include ReportHelper
-  attr_reader :account, :params
+  attr_reader :params
 
   DEFAULT_GROUP_BY = 'day'.freeze
   AGENT_RESULTS_PER_PAGE = 25
 
-  def initialize(account, params)
-    @account = account
+  def initialize(_account = nil, params = nil)
     @params = params
 
     timezone_offset = (params[:timezone_offset] || 0).to_f
@@ -84,19 +83,19 @@ class V2::ReportBuilder
   end
 
   def inbox
-    @inbox ||= account.inboxes.find(params[:id])
+    @inbox ||= Inbox.find(params[:id])
   end
 
   def user
-    @user ||= account.users.find(params[:id])
+    @user ||= User.find(params[:id])
   end
 
   def label
-    @label ||= account.labels.find(params[:id])
+    @label ||= Label.find(params[:id])
   end
 
   def team
-    @team ||= account.teams.find(params[:id])
+    @team ||= Team.find(params[:id])
   end
 
   def get_grouped_values(object_scope)
@@ -111,22 +110,22 @@ class V2::ReportBuilder
   end
 
   def agent_metrics
-    account_users = @account.account_users.page(params[:page]).per(AGENT_RESULTS_PER_PAGE)
-    account_users.each_with_object([]) do |account_user, arr|
-      @user = account_user.user
+    users = User.page(params[:page]).per(AGENT_RESULTS_PER_PAGE)
+    users.each_with_object([]) do |u, arr|
+      @user = u
       arr << {
         id: @user.id,
         name: @user.name,
         email: @user.email,
         thumbnail: @user.avatar_url,
-        availability: account_user.availability_status,
+        availability: @user.availability_status,
         metric: live_conversations
       }
     end
   end
 
   def live_conversations
-    @open_conversations = scope.conversations.where(account_id: @account.id).open
+    @open_conversations = scope.conversations.open
     metric = {
       open: @open_conversations.count,
       unattended: @open_conversations.unattended.count

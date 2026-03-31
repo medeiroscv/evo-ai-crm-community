@@ -182,7 +182,6 @@ class Webhooks::WhatsappEventsJob < ApplicationJob
 
     # Find or create conversation
     conversation = contact_inbox.conversations.find_or_create_by!(
-      account_id: channel.inbox.account_id,
       inbox_id: channel.inbox.id,
       contact_id: contact_inbox.contact_id,
       contact_inbox_id: contact_inbox.id
@@ -216,10 +215,9 @@ class Webhooks::WhatsappEventsJob < ApplicationJob
     # Create message in Evolution with original timestamp
     message = conversation.messages.create!(
       content: content,
-      account_id: channel.inbox.account_id,
       inbox_id: channel.inbox.id,
       source_id: message_id,
-      sender: from_me ? channel.inbox.account.account_users.first.user : conversation.contact,
+      sender: from_me ? User.where(type: 'SuperAdmin').first || User.first : conversation.contact,
       sender_type: from_me ? 'User' : 'Contact',
       message_type: from_me ? :outgoing : :incoming,
       created_at: created_at,  # 🎯 Data real da mensagem!
@@ -455,7 +453,6 @@ class Webhooks::WhatsappEventsJob < ApplicationJob
   def channel_is_inactive?(channel)
     return true if channel.blank?
     return true if channel.reauthorization_required?
-    return true unless channel.account.active?
 
     false
   end

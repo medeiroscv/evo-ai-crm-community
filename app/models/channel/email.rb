@@ -124,7 +124,8 @@ class Channel::Email < ApplicationRecord
   private
 
   def ensure_forward_to_email
-    self.forward_to_email ||= "#{SecureRandom.hex}@#{account.inbound_email_domain}"
+    domain = ENV.fetch('MAILER_INBOUND_EMAIL_DOMAIN', ENV.fetch('FRONTEND_URL', 'example.com').gsub(%r{https?://}, ''))
+    self.forward_to_email ||= "#{SecureRandom.hex}@#{domain}"
   end
 
   def disable_push_if_enabled

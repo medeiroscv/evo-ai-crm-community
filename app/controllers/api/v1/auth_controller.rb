@@ -74,23 +74,7 @@ class Api::V1::AuthController < ApplicationController
       success: true,
       data: {
         user: current_user.as_json(
-          only: [:id, :email, :name, :display_name, :availability],
-          include: {
-            account_users: {
-              only: [:id, :role, :availability],
-              include: {
-                account: {
-                  only: [:id, :name, :domain, :status]
-                }
-              }
-            }
-          }
-        ),
-        current_account: current_account&.as_json(
-          only: [:id, :name, :domain, :status, :locale]
-        ),
-        accounts: current_user.accounts.active.as_json(
-          only: [:id, :name, :domain, :status]
+          only: [:id, :email, :name, :display_name, :availability]
         )
       }
     }
@@ -106,8 +90,6 @@ class Api::V1::AuthController < ApplicationController
 
     session[:evo_auth_token] = nil
     Current.user = nil
-    Current.account = nil
-    Current.account_user = nil
 
     render json: { success: true, message: 'Logged out successfully' }
   end
@@ -174,30 +156,7 @@ class Api::V1::AuthController < ApplicationController
   end
 
   def switch_account
-    account_id = params[:account_id]
-
-    if account_id.blank?
-      render json: { error: 'Account ID is required' }, status: :bad_request
-      return
-    end
-
-    account = current_user.accounts.find_by(id: account_id)
-
-    unless account
-      render json: { error: 'Account not found or access denied' }, status: :forbidden
-      return
-    end
-
-    # Update current context
-    Current.account = account
-    Current.account_user = current_user.account_users.find_by(account: account)
-
-    render json: {
-      success: true,
-      data: {
-        account: account.as_json(only: [:id, :name, :domain, :status, :locale]),
-        account_user: Current.account_user.as_json(only: [:id, :role, :availability])
-      }
-    }
+    # Single-tenant mode: account switching is not supported
+    render json: { error: 'Account switching is not supported in single-tenant mode' }, status: :not_implemented
   end
 end

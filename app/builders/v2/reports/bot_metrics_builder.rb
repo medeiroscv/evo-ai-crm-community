@@ -1,9 +1,8 @@
 class V2::Reports::BotMetricsBuilder
   include DateRangeHelper
-  attr_reader :account, :params
+  attr_reader :params
 
-  def initialize(account, params)
-    @account = account
+  def initialize(_account = nil, params = nil)
     @params = params
   end
 
@@ -19,25 +18,25 @@ class V2::Reports::BotMetricsBuilder
   private
 
   def bot_activated_inbox_ids
-    @bot_activated_inbox_ids ||= account.inboxes.filter(&:active_bot?).map(&:id)
+    @bot_activated_inbox_ids ||= Inbox.all.filter(&:active_bot?).map(&:id)
   end
 
   def bot_conversations
-    @bot_conversations ||= account.conversations.where(inbox_id: bot_activated_inbox_ids).where(created_at: range)
+    @bot_conversations ||= Conversation.where(inbox_id: bot_activated_inbox_ids).where(created_at: range)
   end
 
   def bot_messages
-    @bot_messages ||= account.messages.outgoing.where(conversation_id: bot_conversations.ids).where(created_at: range)
+    @bot_messages ||= Message.outgoing.where(conversation_id: bot_conversations.ids).where(created_at: range)
   end
 
   def bot_resolutions_count
-    account.reporting_events.joins(:conversation).select(:conversation_id).where(account_id: account.id, name: :conversation_bot_resolved,
-                                                                                 created_at: range).distinct.count
+    ReportingEvent.joins(:conversation).select(:conversation_id).where(name: :conversation_bot_resolved,
+                                                                       created_at: range).distinct.count
   end
 
   def bot_handoffs_count
-    account.reporting_events.joins(:conversation).select(:conversation_id).where(account_id: account.id, name: :conversation_bot_handoff,
-                                                                                 created_at: range).distinct.count
+    ReportingEvent.joins(:conversation).select(:conversation_id).where(name: :conversation_bot_handoff,
+                                                                       created_at: range).distinct.count
   end
 
   def bot_resolution_rate

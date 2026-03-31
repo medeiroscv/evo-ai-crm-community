@@ -10,7 +10,6 @@
 #  account_id :uuid
 #
 class TelegramBot < ApplicationRecord
-  belongs_to :account
   has_one :inbox, as: :channel, dependent: :destroy_async
-  validates :auth_key, uniqueness: { scope: :account_id }
+  validates :auth_key, uniqueness: true
 end

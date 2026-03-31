@@ -52,7 +52,7 @@ class Integrations::Openai::ProcessorService < Integrations::OpenaiBaseService
   private
 
   def account_language
-    @account_language ||= hook.account.locale_english_name
+    @account_language ||= GlobalConfigService.load('DEFAULT_LOCALE', 'english')
   end
 
   def language_instruction

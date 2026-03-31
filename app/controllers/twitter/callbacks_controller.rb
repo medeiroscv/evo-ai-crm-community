@@ -11,7 +11,7 @@ class Twitter::CallbacksController < Twitter::BaseController
       inbox = create_inbox
       ::Redis::Alfred.delete(permitted_params[:oauth_token])
       ::Twitter::WebhookSubscribeService.new(inbox_id: inbox.id).perform
-      redirect_to app_twitter_inbox_agents_url(account_id: account.id, inbox_id: inbox.id)
+      redirect_to app_twitter_inbox_agents_url(inbox_id: inbox.id)
     end
   rescue StandardError => e
     EvolutionExceptionTracker.new(e).capture_exception
@@ -24,16 +24,8 @@ class Twitter::CallbacksController < Twitter::BaseController
     @parsed_body ||= Rack::Utils.parse_nested_query(@response.raw_response.body)
   end
 
-  def account_id
-    ::Redis::Alfred.get(permitted_params[:oauth_token])
-  end
-
-  def account
-    @account ||= Account.find(account_id)
-  end
-
   def twitter_app_redirect_url
-    app_new_twitter_inbox_url(account_id: account.id)
+    app_new_twitter_inbox_url
   end
 
   def ensure_access_token
@@ -44,12 +36,12 @@ class Twitter::CallbacksController < Twitter::BaseController
   end
 
   def create_inbox
-    twitter_profile = account.twitter_profiles.create!(
+    twitter_profile = Channel::TwitterProfile.create!(
       twitter_access_token: parsed_body['oauth_token'],
       twitter_access_token_secret: parsed_body['oauth_token_secret'],
       profile_id: parsed_body['user_id']
     )
-    inbox = account.inboxes.create!(
+    inbox = Inbox.create!(
       name: parsed_body['screen_name'],
       channel: twitter_profile
     )

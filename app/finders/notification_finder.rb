@@ -1,11 +1,10 @@
 class NotificationFinder
-  attr_reader :current_user, :current_account, :params
+  attr_reader :current_user, :params
 
   RESULTS_PER_PAGE = 15
 
-  def initialize(current_user, current_account, params = {})
+  def initialize(current_user, _current_account = nil, params = {})
     @current_user = current_user
-    @current_account = current_account
     @params = params
     set_up
   end
@@ -31,7 +30,7 @@ class NotificationFinder
   end
 
   def find_all_notifications
-    @notifications = current_user.notifications.where(account_id: @current_account.id)
+    @notifications = current_user.notifications
   end
 
   def filter_snoozed_notifications

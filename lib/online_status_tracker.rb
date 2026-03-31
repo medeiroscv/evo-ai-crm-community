@@ -5,88 +5,80 @@ class OnlineStatusTracker
   # presence : sorted set with timestamp as the score & object id as value
 
   # obj_type: Contact | User
-  def self.update_presence(account_id, obj_type, obj_id)
+  def self.update_presence(obj_type, obj_id)
     current_timestamp = Time.now.to_i
-    ::Redis::Alfred.zadd(presence_key(account_id, obj_type), current_timestamp, obj_id)
-
-    return unless obj_type == 'User'
-
-    ::Redis::Alfred.zadd(global_user_presence_key, current_timestamp, obj_id)
+    ::Redis::Alfred.zadd(presence_key(obj_type), current_timestamp, obj_id)
   end
 
-  def self.get_presence(account_id, obj_type, obj_id)
-    connected_time = ::Redis::Alfred.zscore(presence_key(account_id, obj_type), obj_id)
+  def self.get_presence(obj_type, obj_id)
+    connected_time = ::Redis::Alfred.zscore(presence_key(obj_type), obj_id)
     connected_time && connected_time > (Time.zone.now - PRESENCE_DURATION).to_i
   end
 
-  def self.presence_key(account_id, type)
+  def self.presence_key(type)
     case type
     when 'Contact'
-      format(::Redis::Alfred::ONLINE_PRESENCE_CONTACTS, account_id: account_id)
+      ::Redis::Alfred::ONLINE_PRESENCE_CONTACTS
     else
-      format(::Redis::Alfred::ONLINE_PRESENCE_USERS, account_id: account_id)
+      ::Redis::Alfred::ONLINE_PRESENCE_USERS
     end
   end
 
   # online status : online | busy | offline
   # redis hash with obj_id key && status as value
 
-  def self.set_status(account_id, user_id, status)
-    ::Redis::Alfred.hset(status_key(account_id), user_id, status)
+  def self.set_status(user_id, status)
+    ::Redis::Alfred.hset(status_key, user_id, status)
   end
 
-  def self.get_status(account_id, user_id)
-    ::Redis::Alfred.hget(status_key(account_id), user_id)
+  def self.get_status(user_id)
+    ::Redis::Alfred.hget(status_key, user_id)
   end
 
-  def self.status_key(account_id)
-    format(::Redis::Alfred::ONLINE_STATUS, account_id: account_id)
+  def self.status_key
+    ::Redis::Alfred::ONLINE_STATUS
   end
 
-  def self.get_available_contact_ids(account_id)
+  def self.get_available_contact_ids
     range_start = (Time.zone.now - PRESENCE_DURATION).to_i
     # exclusive minimum score is specified by prefixing (
     # we are clearing old records because this could clogg up the sorted set
-    ::Redis::Alfred.zremrangebyscore(presence_key(account_id, 'Contact'), '-inf', "(#{range_start}")
-    ::Redis::Alfred.zrangebyscore(presence_key(account_id, 'Contact'), range_start, '+inf')
+    ::Redis::Alfred.zremrangebyscore(presence_key('Contact'), '-inf', "(#{range_start}")
+    ::Redis::Alfred.zrangebyscore(presence_key('Contact'), range_start, '+inf')
   end
 
-  def self.get_available_contacts(account_id)
+  def self.get_available_contacts
     # returns {id1: 'online', id2: 'online'}
-    get_available_contact_ids(account_id).index_with { |_id| 'online' }
+    get_available_contact_ids.index_with { |_id| 'online' }
   end
 
-  def self.get_available_users(account_id)
-    user_ids = get_available_user_ids(account_id)
+  def self.get_available_users
+    user_ids = get_available_user_ids
 
     return {} if user_ids.blank?
 
-    user_availabilities = ::Redis::Alfred.hmget(status_key(account_id), user_ids)
-    user_ids.map.with_index { |id, index| [id, (user_availabilities[index] || get_availability_from_db(account_id, id))] }.to_h
+    user_availabilities = ::Redis::Alfred.hmget(status_key, user_ids)
+    user_ids.map.with_index { |id, index| [id, (user_availabilities[index] || get_availability_from_db(id))] }.to_h
   end
 
-  def self.get_availability_from_db(account_id, user_id)
-    availability = Account.find(account_id).account_users.find_by(user_id: user_id).availability
-    set_status(account_id, user_id, availability)
+  def self.get_availability_from_db(user_id)
+    availability = User.find_by(id: user_id)&.availability || 'offline'
+    set_status(user_id, availability)
     availability
   end
 
-  def self.get_available_user_ids(account_id)
-    account = Account.find(account_id)
+  def self.get_available_user_ids
     range_start = (Time.zone.now - PRESENCE_DURATION).to_i
-    user_ids = ::Redis::Alfred.zrangebyscore(presence_key(account_id, 'User'), range_start, '+inf')
+    user_ids = ::Redis::Alfred.zrangebyscore(presence_key('User'), range_start, '+inf')
     # since we are dealing with redis items as string, casting to string
-    user_ids += account.account_users.where(auto_offline: false)&.map(&:user_id)&.map(&:to_s)
+    # auto_offline is always false for User (see UserAttributeHelpers), so include all users
+    user_ids += User.pluck(:id).map(&:to_s)
     user_ids.uniq
   end
 
   def self.concurrent_users_count
     range_start = (Time.zone.now - PRESENCE_DURATION).to_i
-    ::Redis::Alfred.zremrangebyscore(global_user_presence_key, '-inf', "(#{range_start}")
-    ::Redis::Alfred.zcount(global_user_presence_key, range_start, '+inf')
-  end
-
-  def self.global_user_presence_key
-    ::Redis::Alfred::ONLINE_PRESENCE_USERS_GLOBAL
+    ::Redis::Alfred.zremrangebyscore(presence_key('User'), '-inf', "(#{range_start}")
+    ::Redis::Alfred.zcount(presence_key('User'), range_start, '+inf')
   end
 end

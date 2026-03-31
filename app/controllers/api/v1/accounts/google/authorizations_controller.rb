@@ -12,7 +12,7 @@ class Api::V1::Accounts::Google::AuthorizationsController < Api::V1::Accounts::B
 
   def create
     email = params[:authorization][:email]
-    state_token = generate_google_token(Current.account.id)
+    state_token = generate_google_token('community')
     callback_url = "#{base_url}/google/callback"
 
     Rails.logger.info "[GOOGLE_AUTH] Creating authorization for email=#{email}, callback_url=#{callback_url}"
@@ -31,7 +31,7 @@ class Api::V1::Accounts::Google::AuthorizationsController < Api::V1::Accounts::B
 
     if redirect_url
       cache_key = "google::#{email.downcase}"
-      ::Redis::Alfred.setex(cache_key, Current.account.id, 5.minutes)
+      ::Redis::Alfred.setex(cache_key, 'community', 5.minutes)
       Rails.logger.info "[GOOGLE_AUTH] Authorization URL generated successfully. Cache key: #{cache_key}"
       render json: { success: true, url: redirect_url }
     else
@@ -71,9 +71,8 @@ class Api::V1::Accounts::Google::AuthorizationsController < Api::V1::Accounts::B
       users_data = decoded_token[0]
       user_email = users_data['email']
 
-      # Find or create channel and inbox
-      account = Account.find(account_id)
-      channel_email = find_or_create_channel(account, user_email, users_data, parsed_body)
+      # Find or create channel and inbox (single-tenant, no account lookup needed)
+      channel_email = find_or_create_channel(user_email, users_data, parsed_body)
 
       # Mark as reauthorized
       channel_email.reauthorized!
@@ -87,7 +86,7 @@ class Api::V1::Accounts::Google::AuthorizationsController < Api::V1::Accounts::B
         rescue StandardError => e
           Rails.logger.error "[GMAIL_PUSH] Failed to enable push for #{channel_email.email}: #{e.message}"
           Rails.logger.error "[GMAIL_PUSH] Backtrace: #{e.backtrace.first(5).join("\n")}"
-          EvolutionExceptionTracker.new(e, account: channel_email.account).capture_exception
+          EvolutionExceptionTracker.new(e, account: nil).capture_exception
         end
       end
 
@@ -110,9 +109,9 @@ class Api::V1::Accounts::Google::AuthorizationsController < Api::V1::Accounts::B
 
   private
 
-  def find_or_create_channel(account, user_email, users_data, parsed_body)
+  def find_or_create_channel(user_email, users_data, parsed_body)
     # Try to find existing channel by email
-    channel_email = Channel::Email.find_by(email: user_email, account: account)
+    channel_email = Channel::Email.find_by(email: user_email)
 
     if channel_email
       # Update existing channel
@@ -139,7 +138,6 @@ class Api::V1::Accounts::Google::AuthorizationsController < Api::V1::Accounts::B
         channel_email = Channel::Email.create!(
           email: user_email,
           provider: 'google',
-          account: account,
           provider_config: {
             access_token: parsed_body['access_token'],
             refresh_token: parsed_body['refresh_token'],
@@ -147,8 +145,7 @@ class Api::V1::Accounts::Google::AuthorizationsController < Api::V1::Accounts::B
           }
         )
 
-        account.inboxes.create!(
-          account: account,
+        Inbox.create!(
           channel: channel_email,
           name: users_data['name'] || fallback_name(user_email)
         )

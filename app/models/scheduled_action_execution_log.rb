@@ -48,11 +48,8 @@ class ScheduledActionExecutionLog < ApplicationRecord
   scope :for_action, ->(action_id) { where(scheduled_action_id: action_id) }
   scope :failed, -> { where(status: [:failed, :error, :timeout]) }
   scope :successful, -> { where(status: :completed) }
-  scope :for_account, ->(account_id) { where(account_id: account_id) }
-
   # Validations
   validates :scheduled_action_id, presence: true
-  validates :account_id, presence: true
   validates :status, presence: true
 
   def success?
@@ -86,7 +83,6 @@ class ScheduledActionExecutionLog < ApplicationRecord
 
     create!(
       scheduled_action: scheduled_action,
-      account_id: scheduled_action.account_id,
       status: status,
       result_message: result.is_a?(Hash) ? result[:data]&.to_s : result.to_s,
       error_details: error ? { message: error.message, backtrace: error.backtrace&.first(5) } : {},

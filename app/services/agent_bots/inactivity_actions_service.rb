@@ -180,7 +180,6 @@ class AgentBots::InactivityActionsService
     # Cria mensagem diretamente no sistema
     begin
       message_params = {
-        account_id: @conversation.account_id,
         inbox_id: @conversation.inbox_id,
         conversation_id: @conversation.id,
         message_type: :outgoing,
@@ -245,7 +244,6 @@ class AgentBots::InactivityActionsService
       # Se tem mensagem configurada, envia antes de finalizar
       if action_config['message'].present?
         message_params = {
-          account_id: @conversation.account_id,
           inbox_id: @conversation.inbox_id,
           conversation_id: @conversation.id,
           message_type: :outgoing,

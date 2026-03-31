@@ -91,7 +91,6 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
           id: attachment.id.to_s,
           message_id: attachment.message_id&.to_s || attachment.attachable_id&.to_s,
           file_type: attachment.file_type,
-          account_id: attachment.account_id.to_s,
           extension: attachment.extension,
           data_url: attachment.file_url || '',
           thumb_url: attachment.thumb_url,
@@ -154,7 +153,7 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
   end
 
   def filter
-    result = ::Conversations::FilterService.new(params.permit!, current_user, current_account).perform
+    result = ::Conversations::FilterService.new(params.permit!, current_user, nil).perform
     @conversations = result[:conversations]
     @conversations_count = result[:count]
     conversation_ids = @conversations.map(&:id)
@@ -185,8 +184,7 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
 
   def available_for_pipeline
     # Get all conversations that are open or pending and NOT already in any pipeline
-    @available_conversations = Current.account.conversations
-                                      .joins(:contact, :inbox)
+    @available_conversations = Conversation.joins(:contact, :inbox)
                                       .where.missing(:pipeline_items)
                                       .where(status: %w[open pending])
                                       .includes(:contact, :inbox, :assignee, :team)
@@ -233,7 +231,7 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
       )
     end
 
-    ConversationReplyMailer.with(account: @conversation.account).conversation_transcript(@conversation, params[:email])&.deliver_later
+    ConversationReplyMailer.with(account: nil).conversation_transcript(@conversation, params[:email])&.deliver_later
     success_response(
       data: { email: params[:email] },
       message: 'Transcript email scheduled for delivery'
@@ -350,7 +348,6 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
 
     connection = ActiveRecord::Base.connection
     quoted_ids = quoted_uuid_list(conversation_ids, connection)
-    account_id = connection.quote(Current.account.id)
     incoming_type = Message.message_types[:incoming]
 
     # Count at most 10 unread messages per conversation using LATERAL to cap work per row.
@@ -361,15 +358,13 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
         SELECT id
         FROM messages
         WHERE messages.conversation_id = c.id
-          AND messages.account_id = #{account_id}
           AND messages.message_type = #{incoming_type}
           AND messages.created_at > COALESCE(c.agent_last_seen_at, to_timestamp(0))
           AND (messages.content_attributes->>'read') IS DISTINCT FROM 'true'
         ORDER BY messages.created_at DESC
         LIMIT 10
       ) m ON TRUE
-      WHERE c.account_id = #{account_id}
-        AND c.id IN (#{quoted_ids})
+      WHERE c.id IN (#{quoted_ids})
       GROUP BY c.id
     SQL
 
@@ -384,7 +379,6 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
 
     connection = ActiveRecord::Base.connection
     quoted_ids = quoted_uuid_list(conversation_ids, connection)
-    account_id = connection.quote(Current.account.id)
     activity_type = Message.message_types[:activity]
 
     # Resolve latest non-activity message ids per conversation with LATERAL, then preload senders.
@@ -395,13 +389,11 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
         SELECT messages.id
         FROM messages
         WHERE messages.conversation_id = c.id
-          AND messages.account_id = #{account_id}
           AND messages.message_type != #{activity_type}
         ORDER BY messages.created_at DESC, messages.id DESC
         LIMIT 1
       ) m ON TRUE
-      WHERE c.account_id = #{account_id}
-        AND c.id IN (#{quoted_ids})
+      WHERE c.id IN (#{quoted_ids})
         AND m.id IS NOT NULL
     SQL
 
@@ -422,7 +414,7 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
   end
 
   def labels_by_title
-    @labels_by_title ||= Current.account.labels.index_by { |label| label.title.to_s.downcase }
+    @labels_by_title ||= Label.all.index_by { |label| label.title.to_s.downcase }
   end
 
   def conversations_pagination_meta
@@ -532,16 +524,16 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
   end
 
   def find_conversation_by_uuid_with_includes(uuid)
-    Current.account.conversations
+    Conversation.all
            .includes(:pipeline_items => [:pipeline, :pipeline_stage, :stage_movements])
            .find_by(id: uuid) ||
-      Current.account.conversations
+      Conversation.all
              .includes(:pipeline_items => [:pipeline, :pipeline_stage, :stage_movements])
              .find_by(uuid: uuid)
   end
 
   def find_conversation_by_display_id_with_includes(display_id)
-    Current.account.conversations
+    Conversation.all
            .includes(:pipeline_items => [:pipeline, :pipeline_stage, :stage_movements])
            .find_by!(display_id: display_id)
   end
@@ -549,14 +541,14 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
   def inbox
     return if params[:inbox_id].blank?
 
-    @inbox = Current.account.inboxes.find(params[:inbox_id])
+    @inbox = Inbox.all.find(params[:inbox_id])
     authorize @inbox, :show?
   end
 
   def contact
     return if params[:contact_id].blank?
 
-    @contact = Current.account.contacts.find(params[:contact_id])
+    @contact = Contact.all.find(params[:contact_id])
   end
 
   def contact_inbox
@@ -569,7 +561,7 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
     if @contact_inbox.blank? && params[:source_id].present?
       @contact_inbox = ::ContactInbox.joins(:inbox)
                                      .where(source_id: params[:source_id])
-                                     .where(inboxes: { account_id: Current.account.id })
+                                     .all
                                      .first
       raise ActiveRecord::RecordNotFound if @contact_inbox.nil?
     end

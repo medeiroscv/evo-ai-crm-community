@@ -17,11 +17,9 @@
 #  index_webhooks_on_account_id_and_url  (account_id,url) UNIQUE
 #
 class Webhook < ApplicationRecord
-  belongs_to :account
   belongs_to :inbox, optional: true
 
-  validates :account_id, presence: true
-  validates :url, uniqueness: { scope: [:account_id] }, format: URI::DEFAULT_PARSER.make_regexp(%w[http https])
+  validates :url, uniqueness: true, format: URI::DEFAULT_PARSER.make_regexp(%w[http https])
   validate :validate_webhook_subscriptions
   enum webhook_type: { account_type: 0, inbox_type: 1 }
 

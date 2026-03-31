@@ -149,7 +149,6 @@ class PipelineItem < ApplicationRecord
     pipeline.pipeline_service_definitions.find_or_create_by!(name: name) do |service_def|
       service_def.default_value = value
       service_def.currency = custom_fields&.dig('currency') || 'BRL'
-      service_def.account = account
     end
   rescue ActiveRecord::RecordNotUnique
     retry
@@ -179,16 +178,6 @@ class PipelineItem < ApplicationRecord
 
   def deal?
     conversation_id.present?
-  end
-
-  def account
-    if conversation.present?
-      conversation.account
-    elsif contact.present?
-      contact.account
-    else
-      nil
-    end
   end
 
   def push_event_data

@@ -17,22 +17,20 @@
 class Integrations::Hook < ApplicationRecord
   include Reauthorizable
 
-  attr_readonly :app_id, :account_id, :inbox_id, :hook_type
+  attr_readonly :app_id, :inbox_id, :hook_type
   before_validation :ensure_hook_type
   after_create :trigger_setup_if_crm
 
-  validates :account_id, presence: true
   validates :app_id, presence: true
   validates :inbox_id, presence: true, if: -> { hook_type == 'inbox' }
   validate :validate_settings_json_schema
   validate :ensure_feature_enabled
-  validates :app_id, uniqueness: { scope: [:account_id], unless: -> { app.present? && app.params[:allow_multiple_hooks].present? } }
+  validates :app_id, uniqueness: { unless: -> { app.present? && app.params[:allow_multiple_hooks].present? } }
 
   # TODO: This seems to be only used for slack at the moment
   # We can add a validator when storing the integration settings and toggle this in future
   enum status: { disabled: 0, enabled: 1 }
 
-  belongs_to :account
   belongs_to :inbox, optional: true
   has_secure_token :access_token
 
@@ -64,12 +62,7 @@ class Integrations::Hook < ApplicationRecord
   end
 
   def feature_allowed?
-    return true if app.blank?
-
-    flag = app.params[:feature_flag]
-    return true unless flag
-
-    account.feature_enabled?(flag)
+    true
   end
 
   private

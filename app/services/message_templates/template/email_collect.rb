@@ -7,21 +7,21 @@ class MessageTemplates::Template::EmailCollect
       conversation.messages.create!(email_input_box_template_message_params)
     end
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: conversation.account).capture_exception
+    EvolutionExceptionTracker.new(e, account: nil).capture_exception
     true
   end
 
   private
 
-  delegate :contact, :account, to: :conversation
+  delegate :contact, to: :conversation
   delegate :inbox, to: :message
 
   def ways_to_reach_you_message_params
+    brand_name = GlobalConfig.get('BRAND_NAME')['BRAND_NAME'].presence || 'Evo CRM'
     content = I18n.t('conversations.templates.ways_to_reach_you_message_body',
-                     account_name: account.name)
+                     account_name: brand_name)
 
     {
-      account_id: @conversation.account_id,
       inbox_id: @conversation.inbox_id,
       message_type: :template,
       content: content
@@ -29,11 +29,11 @@ class MessageTemplates::Template::EmailCollect
   end
 
   def email_input_box_template_message_params
+    brand_name = GlobalConfig.get('BRAND_NAME')['BRAND_NAME'].presence || 'Evo CRM'
     content = I18n.t('conversations.templates.email_input_box_message_body',
-                     account_name: account.name)
+                     account_name: brand_name)
 
     {
-      account_id: @conversation.account_id,
       inbox_id: @conversation.inbox_id,
       message_type: :template,
       content_type: :input_email,

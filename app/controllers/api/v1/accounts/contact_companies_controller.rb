@@ -11,7 +11,7 @@ class Api::V1::Accounts::ContactCompaniesController < Api::V1::Accounts::BaseCon
     service_result = Contacts::LinkCompanyService.new(
       contact: @contact,
       company: @company,
-      account: Current.account
+
     ).perform
 
     if service_result[:success]
@@ -42,7 +42,7 @@ class Api::V1::Accounts::ContactCompaniesController < Api::V1::Accounts::BaseCon
     service_result = Contacts::UnlinkCompanyService.new(
       contact: @contact,
       company: @company,
-      account: Current.account
+
     ).perform
 
     if service_result[:success]
@@ -72,11 +72,11 @@ class Api::V1::Accounts::ContactCompaniesController < Api::V1::Accounts::BaseCon
   private
 
   def fetch_contact
-    @contact = Current.account.contacts.find(params[:contact_id])
+    @contact = Contact.find(params[:contact_id])
   end
 
   def fetch_company
-    @company = Current.account.contacts.find(params[:company_id] || params[:id])
+    @company = Contact.find(params[:company_id] || params[:id])
   end
 end
 

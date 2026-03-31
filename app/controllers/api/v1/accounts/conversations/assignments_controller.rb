@@ -17,7 +17,7 @@ class Api::V1::Accounts::Conversations::AssignmentsController < Api::V1::Account
   private
 
   def set_agent
-    @agent = Current.account.users.find_by(id: params[:assignee_id])
+    @agent = User.find_by(id: params[:assignee_id])
     @conversation.assignee = @agent
     @conversation.save!
     
@@ -35,7 +35,7 @@ class Api::V1::Accounts::Conversations::AssignmentsController < Api::V1::Account
   end
 
   def set_team
-    @team = Current.account.teams.find_by(id: params[:team_id])
+    @team = Team.find_by(id: params[:team_id])
     @conversation.update!(team: @team)
     
     success_response(

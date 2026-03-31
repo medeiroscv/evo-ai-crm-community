@@ -36,9 +36,9 @@ class Integrations::App
   def encode_state
     case params[:id]
     when 'linear'
-      generate_linear_token(Current.account.id)
+      generate_linear_token(nil)
     when 'hubspot'
-      generate_hubspot_token(Current.account.id)
+      generate_hubspot_token(nil)
     else
       nil
     end
@@ -58,26 +58,24 @@ class Integrations::App
     end
   end
 
-  def active?(account)
+  def active?(_account = nil)
     case params[:id]
     when 'slack'
       GlobalConfigService.load('SLACK_CLIENT_SECRET', nil).present?
     when 'linear'
       GlobalConfigService.load('LINEAR_CLIENT_ID', nil).present?
     when 'hubspot'
-      account.feature_enabled?('hubspot_integration') && GlobalConfigService.load('HUBSPOT_CLIENT_ID', nil).present?
+      GlobalConfigService.load('HUBSPOT_CLIENT_ID', nil).present?
     when 'shopify'
-      account.feature_enabled?('shopify_integration') && GlobalConfigService.load('SHOPIFY_CLIENT_ID', nil).present?
-    when 'leadsquared'
-      account.feature_enabled?('crm_integration')
-    when 'bms'
-      account.feature_enabled?('bms_integration')
+      GlobalConfigService.load('SHOPIFY_CLIENT_ID', nil).present?
+    when 'leadsquared', 'bms'
+      true
     when 'webhook', 'dashboard_apps', 'openai'
-      true # Estas integrações devem sempre aparecer para configuração
+      true
     when 'oauth_applications'
       false
     else
-      false # Disabled by default for unknown integrations
+      false
     end
   end
 
@@ -104,25 +102,25 @@ class Integrations::App
     ].join('&')
   end
 
-  def enabled?(account)
+  def enabled?(_account = nil)
     case params[:id]
     when 'webhook'
-      account.webhooks.exists?
+      Webhook.exists?
     when 'dashboard_apps'
-      account.dashboard_apps.exists?
+      DashboardApp.exists?
     when 'oauth_applications'
-      account.oauth_applications.exists?
+      OauthApplication.exists?
     else
-      account.hooks.exists?(app_id: id)
+      Integrations::Hook.exists?(app_id: id)
     end
   end
 
   def hooks
-    Current.account.hooks.where(app_id: id)
+    Integrations::Hook.where(app_id: id)
   end
 
   def self.slack_integration_url
-    "#{ENV.fetch('FRONTEND_URL', nil)}/app/accounts/#{Current.account.id}/settings/integrations/slack"
+    "#{ENV.fetch('FRONTEND_URL', nil)}/app/settings/integrations/slack"
   end
 
   def self.linear_integration_url

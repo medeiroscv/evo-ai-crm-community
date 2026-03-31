@@ -44,7 +44,6 @@ class ContactInbox < ApplicationRecord
       id: id,
       contact: contact.try(:webhook_data),
       inbox: inbox.webhook_data,
-      account: inbox.account.webhook_data,
       current_conversation: current_conversation.try(:webhook_data),
       source_id: source_id
     }

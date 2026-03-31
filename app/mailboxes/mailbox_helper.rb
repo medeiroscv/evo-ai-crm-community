@@ -6,7 +6,6 @@ module MailboxHelper
     return if @conversation.messages.find_by(source_id: processed_mail.message_id).present?
 
     @message = @conversation.messages.create!(
-      account_id: @conversation.account_id,
       sender: @conversation.contact,
       content: mail_content&.truncate(150_000),
       inbox_id: @conversation.inbox_id,
@@ -65,7 +64,6 @@ module MailboxHelper
       extension = filename.present? ? File.extname(filename).delete_prefix('.') : nil
       
       attachment = @message.attachments.new(
-        account_id: @conversation.account_id,
         file_type: file_type,
         extension: extension
       )

@@ -37,7 +37,7 @@ class Messages::Facebook::MessageBuilder < Messages::Messenger::MessageBuilder
     Rails.logger.error e
     @inbox.channel.authorization_error!
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: @inbox.account).capture_exception
+    EvolutionExceptionTracker.new(e, account: nil).capture_exception
     true
   end
 
@@ -143,7 +143,6 @@ class Messages::Facebook::MessageBuilder < Messages::Messenger::MessageBuilder
 
   def conversation_params
     {
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       contact_id: @contact_inbox.contact_id
     }
@@ -151,7 +150,6 @@ class Messages::Facebook::MessageBuilder < Messages::Messenger::MessageBuilder
 
   def message_params
     {
-      account_id: conversation.account_id,
       inbox_id: conversation.inbox_id,
       message_type: @message_type,
       content: response.content,
@@ -166,7 +164,6 @@ class Messages::Facebook::MessageBuilder < Messages::Messenger::MessageBuilder
   def process_contact_params_result(result)
     {
       name: "#{result['first_name'] || 'John'} #{result['last_name'] || 'Doe'}",
-      account_id: @inbox.account_id,
       avatar_url: result['profile_pic']
     }
   end
@@ -189,11 +186,11 @@ class Messages::Facebook::MessageBuilder < Messages::Messenger::MessageBuilder
       if e.message.include?('2018218')
         Rails.logger.warn e
       else
-        EvolutionExceptionTracker.new(e, account: @inbox.account).capture_exception unless @outgoing_echo
+        EvolutionExceptionTracker.new(e, account: nil).capture_exception unless @outgoing_echo
       end
     rescue StandardError => e
       result = {}
-      EvolutionExceptionTracker.new(e, account: @inbox.account).capture_exception
+      EvolutionExceptionTracker.new(e, account: nil).capture_exception
     end
     process_contact_params_result(result)
   end

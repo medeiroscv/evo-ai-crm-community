@@ -26,7 +26,6 @@ class Public::Api::V1::Inboxes::MessagesController < Public::Api::V1::InboxesCon
 
     params[:attachments].each do |uploaded_attachment|
       @message.attachments.new(
-        account_id: @message.account_id,
         file_type: helpers.file_type(uploaded_attachment&.content_type),
         file: uploaded_attachment
       )
@@ -58,7 +57,6 @@ class Public::Api::V1::Inboxes::MessagesController < Public::Api::V1::InboxesCon
 
   def message_params
     {
-      account_id: @conversation.account_id,
       sender: @contact_inbox.contact,
       content: permitted_params[:content],
       inbox_id: @conversation.inbox_id,

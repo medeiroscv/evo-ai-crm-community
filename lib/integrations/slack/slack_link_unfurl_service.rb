@@ -7,8 +7,7 @@ class Integrations::Slack::SlackLinkUnfurlService
 
     event_links.each do |link_info|
       url = link_info[:url]
-      # Unfurl only if the account id is same as the integration hook account id
-      unfurl_link(url) if url && valid_account?(url)
+      unfurl_link(url) if url
     end
   end
 
@@ -62,18 +61,7 @@ class Integrations::Slack::SlackLinkUnfurlService
   end
 
   def find_conversation_by_id(conversation_id)
-    Conversation.find_by(display_id: conversation_id, account_id: integration_hook.account_id)
-  end
-
-  def valid_account?(url)
-    account_id = extract_account_id(url)
-    account_id == integration_hook.account_id.to_s
-  end
-
-  def extract_account_id(url)
-    account_id_regex = %r{/accounts/(\d+)}
-    match_data = url.match(account_id_regex)
-    match_data[1] if match_data
+    Conversation.find_by(display_id: conversation_id)
   end
 
   def extract_conversation_id(url)

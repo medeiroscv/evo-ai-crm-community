@@ -17,7 +17,7 @@ class V2::Reports::BaseSummaryBuilder
   end
 
   def reporting_events
-    @reporting_events ||= account.reporting_events.where(created_at: range)
+    @reporting_events ||= ReportingEvent.where(created_at: range)
   end
 
   def fetch_conversations_count

@@ -28,7 +28,7 @@ class Api::V1::Accounts::CustomAttributeDefinitionsController < Api::V1::Account
   end
 
   def create
-    @custom_attribute_definition = Current.account.custom_attribute_definitions.new(permitted_payload)
+    @custom_attribute_definition = CustomAttributeDefinition.new(permitted_payload)
     
     if @custom_attribute_definition.save
       success_response(
@@ -73,11 +73,11 @@ class Api::V1::Accounts::CustomAttributeDefinitionsController < Api::V1::Account
   private
 
   def fetch_custom_attributes_definitions
-    @custom_attribute_definitions = Current.account.custom_attribute_definitions.with_attribute_model(permitted_params[:attribute_model])
+    @custom_attribute_definitions = CustomAttributeDefinition.with_attribute_model(permitted_params[:attribute_model])
   end
 
   def fetch_custom_attribute_definition
-    @custom_attribute_definition = Current.account.custom_attribute_definitions.find(permitted_params[:id])
+    @custom_attribute_definition = CustomAttributeDefinition.find(permitted_params[:id])
   rescue ActiveRecord::RecordNotFound
     error_response(
       ApiErrorCodes::CUSTOM_ATTRIBUTE_NOT_FOUND,

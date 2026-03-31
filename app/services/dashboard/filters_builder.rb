@@ -4,10 +4,9 @@ module Dashboard
   class FiltersBuilder
     DEFAULT_RANGE_DAYS = 30
 
-    attr_reader :account, :params
+    attr_reader :params
 
-    def initialize(account:, params:)
-      @account = account
+    def initialize(account: nil, params:)
       @params = params
     end
 
@@ -41,7 +40,7 @@ module Dashboard
     end
 
     def conversation_scope(base_scope = nil, apply_time_range: true)
-      scope = (base_scope || account.conversations)
+      scope = (base_scope || Conversation.all)
       scope = scope.where(created_at: time_range) if apply_time_range
       scope = scope.where(team_id: team_id) if team_id.present?
       scope = scope.where(inbox_id: inbox_id) if inbox_id.present?
@@ -51,7 +50,7 @@ module Dashboard
     end
 
     def reporting_events_scope(base_scope = nil)
-      scope = (base_scope || account.reporting_events).where(created_at: time_range)
+      scope = (base_scope || ReportingEvent.all).where(created_at: time_range)
       scope = scope.where(inbox_id: inbox_id) if inbox_id.present?
       scope = scope.where(user_id: user_id) if user_id.present?
       scope = scope.joins(:conversation).where(conversations: { team_id: team_id }) if team_id.present?
@@ -64,7 +63,7 @@ module Dashboard
     end
 
     def pipeline_items_scope(base_scope = nil)
-      scope = (base_scope || account.pipeline_items).where(created_at: time_range)
+      scope = (base_scope || PipelineItem.all).where(created_at: time_range)
       scope = scope.where(pipeline_id: pipeline_id) if pipeline_id.present?
 
       if team_id.present? || inbox_id.present? || user_id.present?
@@ -78,7 +77,7 @@ module Dashboard
     end
 
     def pipeline_tasks_scope(base_scope = nil)
-      scope = (base_scope || account.pipeline_tasks).where(created_at: time_range)
+      scope = (base_scope || PipelineTask.all).where(created_at: time_range)
       scope = scope.joins(:pipeline_item)
       scope = scope.where(pipeline_items: { pipeline_id: pipeline_id }) if pipeline_id.present?
 
@@ -93,7 +92,7 @@ module Dashboard
     end
 
     def messages_scope(base_scope = nil)
-      scope = (base_scope || account.messages).where(created_at: time_range)
+      scope = (base_scope || Message.all).where(created_at: time_range)
       scope = scope.where(inbox_id: inbox_id) if inbox_id.present?
       joins_applied = false
 
@@ -113,11 +112,11 @@ module Dashboard
 
       # Avoid DISTINCT messages.* on json/jsonb columns (PostgreSQL has no equality operator for json)
       deduped_ids = scope.unscope(:select, :order).reselect(:id).distinct
-      (base_scope || account.messages).where(id: deduped_ids)
+      (base_scope || Message.all).where(id: deduped_ids)
     end
 
     def csat_scope(base_scope = nil)
-      scope = (base_scope || account.csat_survey_responses).where(created_at: time_range)
+      scope = (base_scope || CsatSurveyResponse.all).where(created_at: time_range)
       scope = scope.where(assigned_agent_id: user_id) if user_id.present?
       joins_applied = false
 
@@ -136,7 +135,7 @@ module Dashboard
       return scope unless joins_applied
 
       deduped_ids = scope.unscope(:select, :order).reselect(:id).distinct
-      (base_scope || account.csat_survey_responses).where(id: deduped_ids)
+      (base_scope || CsatSurveyResponse.all).where(id: deduped_ids)
     end
 
     private

@@ -122,7 +122,6 @@ class Whatsapp::IncomingMessageBaseService
     return if attachment_file.blank?
 
     @message.attachments.new(
-      account_id: @message.account_id,
       file_type: file_content_type(message_type),
       file: {
         io: attachment_file,
@@ -136,7 +135,6 @@ class Whatsapp::IncomingMessageBaseService
     location = @processed_params[:messages].first['location']
     location_name = location['name'] ? "#{location['name']}, #{location['address']}" : ''
     @message.attachments.new(
-      account_id: @message.account_id,
       file_type: file_content_type(message_type),
       coordinates_lat: location['latitude'],
       coordinates_long: location['longitude'],
@@ -148,7 +146,6 @@ class Whatsapp::IncomingMessageBaseService
   def create_message(message)
     @message = @conversation.messages.build(
       content: message_content(message),
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       message_type: :incoming,
       sender: @contact,
@@ -163,7 +160,6 @@ class Whatsapp::IncomingMessageBaseService
 
     phones.each do |phone|
       @message.attachments.new(
-        account_id: @message.account_id,
         file_type: file_content_type(message_type),
         fallback_title: phone[:phone].to_s
       )

@@ -14,7 +14,7 @@ class Api::V1::Accounts::TeamsController < Api::V1::Accounts::BaseController
   before_action :validate_team_limit, only: [:create]
 
   def index
-    @teams = Current.account.teams
+    @teams = Team.all
     
     apply_pagination
     
@@ -33,7 +33,7 @@ class Api::V1::Accounts::TeamsController < Api::V1::Accounts::BaseController
   end
 
   def create
-    @team = Current.account.teams.new(team_params)
+    @team = Team.new(team_params)
     
     if @team.save
       success_response(
@@ -78,7 +78,7 @@ class Api::V1::Accounts::TeamsController < Api::V1::Accounts::BaseController
   private
 
   def fetch_team
-    @team = Current.account.teams.find(params[:id])
+    @team = Team.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     error_response(
       code: ApiErrorCodes::TEAM_NOT_FOUND,

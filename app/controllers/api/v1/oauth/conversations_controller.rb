@@ -1,10 +1,8 @@
 # Herda diretamente do controller de accounts
 class Api::V1::Oauth::ConversationsController < Api::V1::Accounts::ConversationsController
   # Remove os middlewares do controller pai que dependem de account_id na URL
-  skip_before_action :current_account
   skip_before_action :authenticate_request!
 
-  # Remove os before_actions específicos do controller pai que dependem de Current.account
   skip_before_action :conversation
   skip_before_action :inbox
   skip_before_action :contact
@@ -14,14 +12,13 @@ class Api::V1::Oauth::ConversationsController < Api::V1::Accounts::Conversations
   include Doorkeeper::Rails::Helpers
   include OauthAccountHelper
   before_action :ensure_oauth_authentication!
-  before_action :current_account
   before_action :conversation, except: [:index, :meta, :search, :create, :filter, :available_for_pipeline]
   before_action :inbox, :contact, :contact_inbox, only: [:create]
 
   # Override available_for_pipeline to ensure it works with OAuth
   def available_for_pipeline
     # Get all conversations that are open or pending and NOT already in any pipeline
-    @available_conversations = Current.account.conversations
+    @available_conversations = Conversation.all
                                       .joins(:contact, :inbox)
                                       .where.missing(:pipeline_items)
                                       .where(status: %w[open pending])
@@ -97,14 +94,14 @@ class Api::V1::Oauth::ConversationsController < Api::V1::Accounts::Conversations
   def inbox
     return if params[:inbox_id].blank?
 
-    @inbox = Current.account.inboxes.find(params[:inbox_id])
+    @inbox = Inbox.all.find(params[:inbox_id])
     authorize @inbox, :show?
   end
 
   def contact
     return if params[:contact_id].blank?
 
-    @contact = Current.account.contacts.find(params[:contact_id])
+    @contact = Contact.all.find(params[:contact_id])
   end
 
   def contact_inbox
@@ -120,10 +117,7 @@ class Api::V1::Oauth::ConversationsController < Api::V1::Accounts::Conversations
         @contact_inbox = ContactInbox.find_by(inbox: @inbox, source_id: params[:source_id])
       else
         # Otherwise, validate through account_id
-        @contact_inbox = ::ContactInbox.joins(:inbox)
-                                       .where(source_id: params[:source_id])
-                                       .where(inboxes: { account_id: Current.account.id })
-                                       .first
+        @contact_inbox = ::ContactInbox.find_by(source_id: params[:source_id])
       end
       raise ActiveRecord::RecordNotFound if @contact_inbox.nil?
     end

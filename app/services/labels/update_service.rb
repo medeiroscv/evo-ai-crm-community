@@ -1,5 +1,5 @@
 class Labels::UpdateService
-  pattr_initialize [:new_label_title!, :old_label_title!, :account_id!]
+  pattr_initialize [:new_label_title!, :old_label_title!]
 
   def perform
     tagged_conversations.find_in_batches do |conversation_batch|
@@ -22,14 +22,10 @@ class Labels::UpdateService
   private
 
   def tagged_conversations
-    account.conversations.tagged_with(old_label_title)
+    Conversation.tagged_with(old_label_title)
   end
 
   def tagged_contacts
-    account.contacts.tagged_with(old_label_title)
-  end
-
-  def account
-    @account ||= Account.find(account_id)
+    Contact.tagged_with(old_label_title)
   end
 end

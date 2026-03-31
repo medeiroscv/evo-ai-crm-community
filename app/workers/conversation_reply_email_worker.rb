@@ -8,9 +8,9 @@ class ConversationReplyEmailWorker
 
     # send the email
     if @conversation.messages.incoming&.last&.content_type == 'incoming_email'
-      ConversationReplyMailer.with(account: @conversation.account).reply_without_summary(@conversation, last_queued_id).deliver_later
+      ConversationReplyMailer.with(account: nil).reply_without_summary(@conversation, last_queued_id).deliver_later
     else
-      ConversationReplyMailer.with(account: @conversation.account).reply_with_summary(@conversation, last_queued_id).deliver_later
+      ConversationReplyMailer.with(account: nil).reply_with_summary(@conversation, last_queued_id).deliver_later
     end
 
     # delete the redis set from the first new message on the conversation

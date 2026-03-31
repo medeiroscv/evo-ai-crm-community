@@ -290,26 +290,22 @@ class AgentBots::HttpRequestService
 
   def find_conversation_from_payload
     # Try multiple strategies to find the conversation
-    # Always scope by account_id to ensure we find the correct conversation
-
-    account_id = @agent_bot.account_id
-    return nil unless account_id
 
     # Strategy 1: Try conversation ID from payload (could be UUID or display_id)
     conversation_id = @payload.dig(:conversation, :id) || @payload[:conversation_id]
 
     if conversation_id
-      # Try finding by UUID first (scoped by account)
-      conversation = Conversation.where(account_id: account_id).find_by(id: conversation_id)
+      # Try finding by UUID first
+      conversation = Conversation.find_by(id: conversation_id)
       if conversation
         Rails.logger.info "[AgentBot HTTP] Found conversation by UUID: #{conversation.id}"
         return conversation
       end
 
-      # If not found and it's a number, try finding by display_id (scoped by account)
+      # If not found and it's a number, try finding by display_id
       if conversation_id.to_s.match?(/\A\d+\z/)
         Rails.logger.debug "[AgentBot HTTP] Trying to find conversation by display_id: #{conversation_id}"
-        conversation = Conversation.where(account_id: account_id).find_by(display_id: conversation_id)
+        conversation = Conversation.find_by(display_id: conversation_id)
         if conversation
           Rails.logger.info "[AgentBot HTTP] Found conversation by display_id: #{conversation.id}"
           return conversation
@@ -321,7 +317,7 @@ class AgentBots::HttpRequestService
     message_id = @payload[:id] || @payload[:message_id]
     if message_id
       Rails.logger.debug "[AgentBot HTTP] Trying to find conversation via message ID: #{message_id}"
-      message = Message.where(account_id: account_id).find_by(id: message_id)
+      message = Message.find_by(id: message_id)
       if message&.conversation
         Rails.logger.info "[AgentBot HTTP] Found conversation via message: #{message.conversation.id}"
         return message.conversation
@@ -332,7 +328,7 @@ class AgentBots::HttpRequestService
     display_id = @payload.dig(:conversation, :display_id)
     if display_id
       Rails.logger.debug "[AgentBot HTTP] Trying to find conversation by display_id from payload: #{display_id}"
-      conversation = Conversation.where(account_id: account_id).find_by(display_id: display_id)
+      conversation = Conversation.find_by(display_id: display_id)
       if conversation
         Rails.logger.info "[AgentBot HTTP] Found conversation by display_id from payload: #{conversation.id}"
         return conversation

@@ -5,7 +5,7 @@ module Integrations::Slack::SlackMessageHelper
     handle_conversation
     success_response
   rescue Slack::Web::Api::Errors::MissingScope => e
-    EvolutionExceptionTracker.new(e, account: conversation.account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     disable_and_reauthorize
   end
 
@@ -29,7 +29,6 @@ module Integrations::Slack::SlackMessageHelper
   def create_message
     @message = conversation.messages.build(
       message_type: :outgoing,
-      account_id: conversation.account_id,
       inbox_id: conversation.inbox_id,
       content: Slack::Messages::Formatting.unescape(params[:event][:text] || ''),
       external_source_id_slack: params[:event][:ts],
@@ -50,7 +49,6 @@ module Integrations::Slack::SlackMessageHelper
 
       attachment_params = {
         file_type: file_type(attachment),
-        account_id: @message.account_id,
         external_url: attachment[:url_private],
         file: {
           io: tempfile,
@@ -81,7 +79,7 @@ module Integrations::Slack::SlackMessageHelper
 
   def sender
     user_email = slack_client.users_info(user: params[:event][:user])[:user][:profile][:email]
-    conversation.account.users.from_email(user_email)
+    User.from_email(user_email)
   end
 
   def private_note?

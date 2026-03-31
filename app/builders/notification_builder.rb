@@ -1,5 +1,5 @@
 class NotificationBuilder
-  pattr_initialize [:notification_type!, :user!, :account!, :primary_actor!, :secondary_actor]
+  pattr_initialize [:notification_type!, :user!, :account, :primary_actor!, :secondary_actor]
 
   def perform
     build_notification
@@ -12,8 +12,8 @@ class NotificationBuilder
   end
 
   def user_subscribed_to_notification?
-    notification_setting = user.notification_settings.find_by(account_id: account.id)
-    # added for the case where an assignee might be removed from the account but remains in conversation
+    notification_setting = user.notification_settings.first
+    # added for the case where an assignee might be removed but remains in conversation
     return false if notification_setting.blank?
 
     return true if notification_setting.public_send("email_#{notification_type}?")
@@ -30,7 +30,6 @@ class NotificationBuilder
 
     user.notifications.create!(
       notification_type: notification_type,
-      account: account,
       primary_actor: primary_actor,
       # secondary_actor is secondary_actor if present, else current_user
       secondary_actor: secondary_actor || current_user

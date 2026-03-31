@@ -5,10 +5,8 @@ class AutomationRules::ConditionsFilterService < FilterService
 
   def initialize(rule, conversation = nil, options = {})
     super([], nil)
-    # assign rule, conversation and account to instance variables
     @rule = rule
     @conversation = conversation
-    @account = conversation.account
 
     # setup filters from json file
     file = File.read('./lib/filters/filter_keys.yml')
@@ -42,7 +40,7 @@ class AutomationRules::ConditionsFilterService < FilterService
 
     records.any?
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     false
   end
 
@@ -125,7 +123,7 @@ class AutomationRules::ConditionsFilterService < FilterService
     # Para labels, converte IDs para títulos
     if attribute_key == 'labels'
       label_ids = query_hash['values']
-      label_titles = Label.where(id: label_ids, account_id: @account.id).pluck(:title)
+      label_titles = Label.where(id: label_ids).pluck(:title)
       query_hash = query_hash.merge('values' => label_titles)
     end
 
@@ -150,7 +148,7 @@ class AutomationRules::ConditionsFilterService < FilterService
     # Para labels, converte IDs para títulos
     if attribute_key == 'labels'
       label_ids = query_hash['values']
-      label_titles = Label.where(id: label_ids, account_id: @account.id).pluck(:title)
+      label_titles = Label.where(id: label_ids).pluck(:title)
       query_hash = query_hash.merge('values' => label_titles)
     end
     
@@ -187,7 +185,7 @@ class AutomationRules::ConditionsFilterService < FilterService
       message_query_string(filters[:message], query_hash.with_indifferent_access, current_index)
     elsif pipeline_filter?(query_hash['attribute_key'])
       pipeline_query_string(query_hash.with_indifferent_access, current_index)
-    elsif custom_attribute(query_hash['attribute_key'], @account, query_hash['custom_attribute_type'])
+    elsif custom_attribute(query_hash['attribute_key'], query_hash['custom_attribute_type'])
       custom_attribute_query(query_hash.with_indifferent_access, query_hash['custom_attribute_type'], current_index)
     else
       ''

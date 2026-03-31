@@ -23,7 +23,6 @@ module CustomFilterSerializer
       name: custom_filter.name,
       filter_type: custom_filter.filter_type,
       query: custom_filter.query,
-      account_id: custom_filter.account_id,
       user_id: custom_filter.user_id,
       created_at: custom_filter.created_at&.iso8601,
       updated_at: custom_filter.updated_at&.iso8601

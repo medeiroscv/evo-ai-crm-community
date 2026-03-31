@@ -3,8 +3,6 @@ class Hubspot::CallbacksController < ApplicationController
 
   def show
     Rails.logger.info("HubSpot callback started with state: #{params[:state]}")
-    Rails.logger.info("Account ID resolved: #{account_id}")
-    Rails.logger.info("Account found: #{account.present?}")
 
     # Manual token exchange with explicit headers
     token_params = {
@@ -58,7 +56,7 @@ class Hubspot::CallbacksController < ApplicationController
     # Get HubSpot portal info
     portal_info = get_portal_info(parsed_body['access_token'])
 
-    hook = account.hooks.new(
+    hook = Hook.new(
       access_token: parsed_body['access_token'],
       status: 'enabled',
       app_id: 'hubspot',
@@ -100,18 +98,8 @@ class Hubspot::CallbacksController < ApplicationController
     { 'hub_id' => 'unknown' }
   end
 
-  def account
-    @account ||= Account.find(account_id)
-  end
-
-  def account_id
-    return unless params[:state]
-
-    verify_hubspot_token(params[:state])
-  end
-
   def hubspot_redirect_uri
-    "#{ENV.fetch('FRONTEND_URL', nil)}/app/accounts/#{account.id}/settings/integrations/hubspot"
+    "#{ENV.fetch('FRONTEND_URL', nil)}/app/settings/integrations/hubspot"
   end
 
   def parsed_body

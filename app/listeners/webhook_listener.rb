@@ -93,7 +93,7 @@ class WebhookListener < BaseListener
 
   def pipeline_item_created(event)
     pipeline_item = event.data[:pipeline_item]
-    account = pipeline_item.account
+    account = single_tenant_account
     payload = pipeline_item.webhook_data.merge(event: 'pipeline_item.created')
     deliver_account_webhooks(payload, account)
   end
@@ -103,7 +103,7 @@ class WebhookListener < BaseListener
     changed_attributes = event.data[:changed_attributes] || {}
     return if changed_attributes.blank?
 
-    account = pipeline_item.account
+    account = single_tenant_account
     payload = pipeline_item.webhook_data.merge(
       event: 'pipeline_item.updated',
       changed_attributes: changed_attributes
@@ -113,14 +113,14 @@ class WebhookListener < BaseListener
 
   def pipeline_item_completed(event)
     pipeline_item = event.data[:pipeline_item]
-    account = pipeline_item.account
+    account = single_tenant_account
     payload = pipeline_item.webhook_data.merge(event: 'pipeline_item.completed')
     deliver_account_webhooks(payload, account)
   end
 
   def pipeline_item_cancelled(event)
     pipeline_item = event.data[:pipeline_item]
-    account = pipeline_item.account
+    account = single_tenant_account
     payload = pipeline_item.webhook_data.merge(event: 'pipeline_item.cancelled')
     deliver_account_webhooks(payload, account)
   end
@@ -141,8 +141,8 @@ class WebhookListener < BaseListener
     deliver_webhook_payloads(payload, inbox)
   end
 
-  def deliver_account_webhooks(payload, account)
-    account.webhooks.account_type.each do |webhook|
+  def deliver_account_webhooks(payload, _account = nil)
+    Webhook.account_type.each do |webhook|
       next unless webhook.subscriptions.include?(payload[:event])
       next if payload[:inbox].present? && webhook.inbox_id.present? && webhook.inbox_id != payload[:inbox][:id]
 
@@ -158,7 +158,7 @@ class WebhookListener < BaseListener
   end
 
   def deliver_webhook_payloads(payload, inbox)
-    deliver_account_webhooks(payload, inbox.account)
+    deliver_account_webhooks(payload, single_tenant_account)
     deliver_api_inbox_webhooks(payload, inbox)
   end
 end

@@ -1,11 +1,11 @@
 class RoomChannel < ApplicationCable::Channel
   def subscribed
-    Rails.logger.info "RoomChannel subscription requested account_id=#{params[:account_id]} user_id=#{params[:user_id]}"
+    Rails.logger.info "RoomChannel subscription requested user_id=#{params[:user_id]}"
     @current_user = resolve_current_user
     ensure_stream
     update_subscription
     broadcast_presence
-    Rails.logger.info "RoomChannel subscription successful account_id=#{@current_account&.id} user_id=#{@current_user.id}"
+    Rails.logger.info "RoomChannel subscription successful user_id=#{@current_user.id}"
   rescue ActiveRecord::RecordNotFound => e
     Rails.logger.warn "RoomChannel subscription rejected: #{e.class} #{e.message}"
     reject
@@ -23,36 +23,21 @@ class RoomChannel < ApplicationCable::Channel
   private
 
   def broadcast_presence
-    return if current_account.blank?
-
-    data = { account_id: current_account.id, users: ::OnlineStatusTracker.get_available_users(current_account.id) }
-    data[:contacts] = ::OnlineStatusTracker.get_available_contacts(current_account.id) if @current_user.is_a? User
+    data = { users: ::OnlineStatusTracker.get_available_users }
+    data[:contacts] = ::OnlineStatusTracker.get_available_contacts if @current_user.is_a? User
     ActionCable.server.broadcast(@stream_pubsub_token, { event: 'presence.update', data: data })
   end
 
   def ensure_stream
     stream_from @stream_pubsub_token
-    stream_from "account_#{current_account.id}" if current_account.present? && @current_user.is_a?(User)
   end
 
   def update_subscription
-    return if current_account.blank?
-
-    ::OnlineStatusTracker.update_presence(current_account.id, @current_user.class.name, @current_user.id)
+    ::OnlineStatusTracker.update_presence(@current_user.class.name, @current_user.id)
   end
 
   def current_user
     @current_user
-  end
-
-  def current_account
-    return if current_user.blank?
-
-    @current_account ||= if @current_user.is_a? Contact
-                           @current_user.account
-                         else
-                           @current_user.accounts.find(params[:account_id])
-                         end
   end
 
   def resolve_current_user

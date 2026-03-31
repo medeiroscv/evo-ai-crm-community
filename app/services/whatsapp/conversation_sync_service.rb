@@ -186,7 +186,6 @@ class Whatsapp::ConversationSyncService
     return conversation if conversation
 
     ::Conversation.create!(
-      account_id: inbox.account_id,
       inbox_id: inbox.id,
       contact_id: contact_inbox.contact_id,
       contact_inbox_id: contact_inbox.id,
@@ -229,7 +228,6 @@ class Whatsapp::ConversationSyncService
   def build_historical_message(enhanced_data, conversation, contact)
     conversation.messages.build(
       content: enhanced_data[:computed_content],
-      account_id: inbox.account_id,
       inbox_id: inbox.id,
       message_type: enhanced_data[:computed_incoming] ? :incoming : :outgoing,
       sender: enhanced_data[:computed_incoming] ? contact : nil,
@@ -272,7 +270,6 @@ class Whatsapp::ConversationSyncService
 
     message = conversation.messages.build(
       content: message_content,
-      account_id: inbox.account_id,
       inbox_id: inbox.id,
       message_type: :outgoing, # This is a message sent by the business
       sender: nil, # Business messages don't have a sender contact
@@ -329,7 +326,6 @@ class Whatsapp::ConversationSyncService
     filename = media_data[:filename] || generate_echo_filename(echo_data, content_type)
 
     message.attachments.build(
-      account_id: message.account_id,
       file_type: file_type.to_s,
       file: {
         io: attachment_file,
@@ -390,7 +386,6 @@ class Whatsapp::ConversationSyncService
     location = echo_data[:location] || {}
 
     message.attachments.build(
-      account_id: message.account_id,
       file_type: :location,
       coordinates_lat: location[:latitude],
       coordinates_long: location[:longitude],

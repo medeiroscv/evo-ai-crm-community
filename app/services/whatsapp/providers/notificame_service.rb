@@ -468,8 +468,7 @@ class Whatsapp::Providers::NotificameService < Whatsapp::Providers::BaseService
       ids = [reply_to]
       ids << decoded if decoded.present?
       ids.each do |cid|
-        msg = Message.where(account_id: message.account_id)
-                     .where("external_source_ids ->> 'notificame_provider_id' = ?", cid)
+        msg = Message.where("external_source_ids ->> 'notificame_provider_id' = ?", cid)
                      .first
         if msg
           reply_to = msg.external_source_ids['notificame_provider_id']

@@ -74,7 +74,6 @@ class Api::V1::Widget::BaseController < ApplicationController
 
     # FIXME: typo referrer in additional attributes, will probably require a migration.
     {
-      account_id: inbox.account_id,
       inbox_id: inbox.id,
       contact_id: @contact.id,
       contact_inbox_id: @contact_inbox.id,
@@ -125,7 +124,6 @@ class Api::V1::Widget::BaseController < ApplicationController
                       end
 
     {
-      account_id: conversation.account_id,
       sender: @contact,
       content: message_content,
       inbox_id: conversation.inbox_id,

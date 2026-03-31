@@ -3,13 +3,11 @@
 require 'rails_helper'
 
 RSpec.describe 'POST /api/v1/accounts/conversations/:id/pin', type: :request do
-  let(:account) { Account.create!(name: 'Spec Account') }
-  let(:inbox) { Inbox.create!(account: account, name: 'Spec Inbox') }
-  let(:contact) { Contact.create!(account: account, name: 'Spec Contact', email: 'spec@example.com') }
-  let(:contact_inbox) { ContactInbox.create!(account: account, contact: contact, inbox: inbox) }
+  let(:inbox) { Inbox.create!(name: 'Spec Inbox') }
+  let(:contact) { Contact.create!(name: 'Spec Contact', email: 'spec@example.com') }
+  let(:contact_inbox) { ContactInbox.create!(contact: contact, inbox: inbox) }
   let(:conversation) do
     Conversation.create!(
-      account: account,
       inbox: inbox,
       contact: contact,
       contact_inbox: contact_inbox
@@ -18,8 +16,7 @@ RSpec.describe 'POST /api/v1/accounts/conversations/:id/pin', type: :request do
   let(:service_token) { 'spec-service-token' }
   let(:headers) do
     {
-      'X-Service-Token' => service_token,
-      'account-id' => account.id.to_s
+      'X-Service-Token' => service_token
     }
   end
 
@@ -48,13 +45,11 @@ RSpec.describe 'POST /api/v1/accounts/conversations/:id/pin', type: :request do
 end
 
 RSpec.describe 'POST /api/v1/accounts/conversations/:id/unpin', type: :request do
-  let(:account) { Account.create!(name: 'Spec Account') }
-  let(:inbox) { Inbox.create!(account: account, name: 'Spec Inbox') }
-  let(:contact) { Contact.create!(account: account, name: 'Spec Contact', email: 'spec@example.com') }
-  let(:contact_inbox) { ContactInbox.create!(account: account, contact: contact, inbox: inbox) }
+  let(:inbox) { Inbox.create!(name: 'Spec Inbox') }
+  let(:contact) { Contact.create!(name: 'Spec Contact', email: 'spec@example.com') }
+  let(:contact_inbox) { ContactInbox.create!(contact: contact, inbox: inbox) }
   let(:conversation) do
     Conversation.create!(
-      account: account,
       inbox: inbox,
       contact: contact,
       contact_inbox: contact_inbox,
@@ -64,8 +59,7 @@ RSpec.describe 'POST /api/v1/accounts/conversations/:id/unpin', type: :request d
   let(:service_token) { 'spec-service-token' }
   let(:headers) do
     {
-      'X-Service-Token' => service_token,
-      'account-id' => account.id.to_s
+      'X-Service-Token' => service_token
     }
   end
 
@@ -94,13 +88,11 @@ RSpec.describe 'POST /api/v1/accounts/conversations/:id/unpin', type: :request d
 end
 
 RSpec.describe 'POST /api/v1/accounts/conversations/:id/archive', type: :request do
-  let(:account) { Account.create!(name: 'Spec Account') }
-  let(:inbox) { Inbox.create!(account: account, name: 'Spec Inbox') }
-  let(:contact) { Contact.create!(account: account, name: 'Spec Contact', email: 'spec@example.com') }
-  let(:contact_inbox) { ContactInbox.create!(account: account, contact: contact, inbox: inbox) }
+  let(:inbox) { Inbox.create!(name: 'Spec Inbox') }
+  let(:contact) { Contact.create!(name: 'Spec Contact', email: 'spec@example.com') }
+  let(:contact_inbox) { ContactInbox.create!(contact: contact, inbox: inbox) }
   let(:conversation) do
     Conversation.create!(
-      account: account,
       inbox: inbox,
       contact: contact,
       contact_inbox: contact_inbox
@@ -109,8 +101,7 @@ RSpec.describe 'POST /api/v1/accounts/conversations/:id/archive', type: :request
   let(:service_token) { 'spec-service-token' }
   let(:headers) do
     {
-      'X-Service-Token' => service_token,
-      'account-id' => account.id.to_s
+      'X-Service-Token' => service_token
     }
   end
 
@@ -139,13 +130,11 @@ RSpec.describe 'POST /api/v1/accounts/conversations/:id/archive', type: :request
 end
 
 RSpec.describe 'POST /api/v1/accounts/conversations/:id/unarchive', type: :request do
-  let(:account) { Account.create!(name: 'Spec Account') }
-  let(:inbox) { Inbox.create!(account: account, name: 'Spec Inbox') }
-  let(:contact) { Contact.create!(account: account, name: 'Spec Contact', email: 'spec@example.com') }
-  let(:contact_inbox) { ContactInbox.create!(account: account, contact: contact, inbox: inbox) }
+  let(:inbox) { Inbox.create!(name: 'Spec Inbox') }
+  let(:contact) { Contact.create!(name: 'Spec Contact', email: 'spec@example.com') }
+  let(:contact_inbox) { ContactInbox.create!(contact: contact, inbox: inbox) }
   let(:conversation) do
     Conversation.create!(
-      account: account,
       inbox: inbox,
       contact: contact,
       contact_inbox: contact_inbox,
@@ -155,8 +144,7 @@ RSpec.describe 'POST /api/v1/accounts/conversations/:id/unarchive', type: :reque
   let(:service_token) { 'spec-service-token' }
   let(:headers) do
     {
-      'X-Service-Token' => service_token,
-      'account-id' => account.id.to_s
+      'X-Service-Token' => service_token
     }
   end
 

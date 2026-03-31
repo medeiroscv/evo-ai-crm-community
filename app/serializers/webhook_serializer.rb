@@ -20,7 +20,6 @@ module WebhookSerializer
   def serialize(webhook)
     {
       id: webhook.id,
-      account_id: webhook.account_id,
       inbox_id: webhook.inbox_id,
       url: webhook.url,
       webhook_type: webhook.webhook_type,

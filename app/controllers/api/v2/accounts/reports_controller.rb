@@ -12,7 +12,7 @@ class Api::V2::Accounts::ReportsController < Api::V1::Accounts::BaseController
   
 
   def index
-    builder = V2::Reports::Conversations::ReportBuilder.new(Current.account, report_params)
+    builder = V2::Reports::Conversations::ReportBuilder.new(nil, report_params)
     data = builder.timeseries
     render json: data
   end
@@ -60,7 +60,7 @@ class Api::V2::Accounts::ReportsController < Api::V1::Accounts::BaseController
   end
 
   def bot_metrics
-    bot_metrics = V2::Reports::BotMetricsBuilder.new(Current.account, params).metrics
+    bot_metrics = V2::Reports::BotMetricsBuilder.new(nil, params).metrics
     render json: bot_metrics
   end
 
@@ -130,12 +130,12 @@ class Api::V2::Accounts::ReportsController < Api::V1::Accounts::BaseController
 
   def build_summary(method)
     builder = V2::Reports::Conversations::MetricBuilder
-    current_summary = builder.new(Current.account, current_summary_params).send(method)
-    previous_summary = builder.new(Current.account, previous_summary_params).send(method)
+    current_summary = builder.new(nil, current_summary_params).send(method)
+    previous_summary = builder.new(nil, previous_summary_params).send(method)
     current_summary.merge(previous: previous_summary)
   end
 
   def conversation_metrics
-    V2::ReportBuilder.new(Current.account, conversation_params).conversation_metrics
+    V2::ReportBuilder.new(nil, conversation_params).conversation_metrics
   end
 end

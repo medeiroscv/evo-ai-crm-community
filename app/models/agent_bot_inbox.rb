@@ -47,11 +47,10 @@ class AgentBotInbox < ApplicationRecord
   validate :validate_allowed_label_ids
   validate :validate_ignored_label_ids
   validate :validate_facebook_interaction_type
-  before_validation :ensure_account_id, :set_default_configurations
+  before_validation :set_default_configurations
 
   belongs_to :inbox
   belongs_to :agent_bot
-  belongs_to :account
   belongs_to :facebook_comment_agent_bot, class_name: 'AgentBot', optional: true, foreign_key: 'facebook_comment_agent_bot_id'
   enum status: { active: 0, inactive: 1 }
 
@@ -204,12 +203,12 @@ class AgentBotInbox < ApplicationRecord
 
     # --- Conversation tag names ---
     conversation_tag_names = conversation.label_list || []
-    resolved.concat(resolve_tag_names_to_label_ids(conversation_tag_names, conversation.account_id))
+    resolved.concat(resolve_tag_names_to_label_ids(conversation_tag_names))
 
     # --- Contact tag names ---
     if conversation.contact.present?
       contact_tag_names = conversation.contact.label_list || []
-      resolved.concat(resolve_tag_names_to_label_ids(contact_tag_names, conversation.account_id))
+      resolved.concat(resolve_tag_names_to_label_ids(contact_tag_names))
     end
 
     resolved.uniq
@@ -218,7 +217,7 @@ class AgentBotInbox < ApplicationRecord
   # Convert an array of tag names to CRM Label UUIDs.
   # Tag names that look like UUIDs are treated as CRM Label IDs directly.
   # Other names are resolved by looking up Label records by title.
-  def resolve_tag_names_to_label_ids(tag_names, account_id)
+  def resolve_tag_names_to_label_ids(tag_names)
     return [] if tag_names.blank?
 
     label_ids = []
@@ -233,15 +232,11 @@ class AgentBotInbox < ApplicationRecord
     end
 
     if title_names.any?
-      ids_from_titles = Label.where(title: title_names, account_id: account_id).pluck(:id).map(&:to_s)
+      ids_from_titles = Label.where(title: title_names).pluck(:id).map(&:to_s)
       label_ids.concat(ids_from_titles)
     end
 
     label_ids
-  end
-
-  def ensure_account_id
-    self.account_id = inbox&.account_id
   end
 
   def set_default_configurations
@@ -266,10 +261,7 @@ class AgentBotInbox < ApplicationRecord
   def validate_allowed_label_ids
     return if allowed_label_ids.blank?
 
-    # Validate that all label IDs exist in the account
-    return unless account.present?
-
-    existing_label_ids = account.labels.pluck(:id).map(&:to_s)
+    existing_label_ids = Label.pluck(:id).map(&:to_s)
     invalid_label_ids = allowed_label_ids.map(&:to_s) - existing_label_ids
     return if invalid_label_ids.empty?
 
@@ -279,10 +271,7 @@ class AgentBotInbox < ApplicationRecord
   def validate_ignored_label_ids
     return if ignored_label_ids.blank?
 
-    # Validate that all label IDs exist in the account
-    return unless account.present?
-
-    existing_label_ids = account.labels.pluck(:id).map(&:to_s)
+    existing_label_ids = Label.pluck(:id).map(&:to_s)
     invalid_label_ids = ignored_label_ids.map(&:to_s) - existing_label_ids
     return if invalid_label_ids.empty?
 

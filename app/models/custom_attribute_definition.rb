@@ -28,7 +28,7 @@ class CustomAttributeDefinition < ApplicationRecord
     :conversation => %w[status priority assignee_id inbox_id team_id display_id campaign_id labels browser_language country_code referer created_at
                         last_activity_at channel_type],
     :contact => %w[name email phone_number identifier country_code city created_at last_activity_at referer blocked],
-    :pipeline => %w[id name description pipeline_type visibility is_active config created_at updated_at account_id created_by_id],
+    :pipeline => %w[id name description pipeline_type visibility is_active config created_at updated_at created_by_id],
     :pipeline_stage => %w[id name position color stage_type automation_rules created_at updated_at pipeline_id],
     :pipeline_item => %w[pipeline_id conversation_id pipeline_stage_id custom_fields created_at updated_at contact_id]
   }.freeze
@@ -39,7 +39,7 @@ class CustomAttributeDefinition < ApplicationRecord
 
   validates :attribute_key,
             presence: true,
-            uniqueness: { scope: [:account_id, :attribute_model] }
+            uniqueness: { scope: [:attribute_model] }
 
   validates :attribute_display_type, presence: true
   validates :attribute_model, presence: true
@@ -54,7 +54,7 @@ class CustomAttributeDefinition < ApplicationRecord
   }
   enum attribute_display_type: { text: 0, number: 1, currency: 2, percent: 3, link: 4, date: 5, list: 6, checkbox: 7, datetime: 8 }
 
-  belongs_to :account
+  # account_id column retained for data compatibility but association removed
   # Widget pre-chat sync trigger chain:
   # - create: sync metadata to matching pre-chat fields (if any) + dispatch event
   # - update: sync metadata to matching pre-chat fields + dispatch event
@@ -68,19 +68,19 @@ class CustomAttributeDefinition < ApplicationRecord
   def sync_widget_pre_chat_custom_fields_on_create
     return unless should_sync_widget_pre_chat_custom_fields?
 
-    ::Inboxes::UpdateWidgetPreChatCustomFieldsJob.perform_later(account, self)
+    ::Inboxes::UpdateWidgetPreChatCustomFieldsJob.perform_later(self)
   end
 
   def sync_widget_pre_chat_custom_fields
     return unless should_sync_widget_pre_chat_custom_fields?
 
-    ::Inboxes::SyncWidgetPreChatCustomFieldsJob.perform_later(account, attribute_key)
+    ::Inboxes::SyncWidgetPreChatCustomFieldsJob.perform_later(attribute_key)
   end
 
   def update_widget_pre_chat_custom_fields
     return unless should_sync_widget_pre_chat_custom_fields?
 
-    ::Inboxes::UpdateWidgetPreChatCustomFieldsJob.perform_later(account, self)
+    ::Inboxes::UpdateWidgetPreChatCustomFieldsJob.perform_later(self)
   end
 
   def should_sync_widget_pre_chat_custom_fields?
@@ -101,14 +101,14 @@ class CustomAttributeDefinition < ApplicationRecord
   end
 
   def dispatch_create_event
-    Rails.configuration.dispatcher.dispatch(CUSTOM_ATTRIBUTE_DEFINITION_CREATED, Time.zone.now, custom_attribute_definition: self, account: account)
+    Rails.configuration.dispatcher.dispatch(CUSTOM_ATTRIBUTE_DEFINITION_CREATED, Time.zone.now, custom_attribute_definition: self)
   end
 
   def dispatch_update_event
-    Rails.configuration.dispatcher.dispatch(CUSTOM_ATTRIBUTE_DEFINITION_UPDATED, Time.zone.now, custom_attribute_definition: self, account: account, saved_changes: saved_changes)
+    Rails.configuration.dispatcher.dispatch(CUSTOM_ATTRIBUTE_DEFINITION_UPDATED, Time.zone.now, custom_attribute_definition: self, saved_changes: saved_changes)
   end
 
   def dispatch_destroy_event
-    Rails.configuration.dispatcher.dispatch(CUSTOM_ATTRIBUTE_DEFINITION_DELETED, Time.zone.now, custom_attribute_definition: self, account: account)
+    Rails.configuration.dispatcher.dispatch(CUSTOM_ATTRIBUTE_DEFINITION_DELETED, Time.zone.now, custom_attribute_definition: self)
   end
 end

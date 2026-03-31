@@ -1,11 +1,10 @@
 class Crm::Bms::LabelSyncJob < ApplicationJob
   queue_as :integrations
 
-  def perform(label_id, account_id, action = 'sync')
-    @label = Label.find_by(id: label_id, account_id: account_id)
+  def perform(label_id, _account_id = nil, action = 'sync')
+    @label = Label.find_by(id: label_id)
     return unless @label
 
-    @account = Account.find(account_id)
     @hook = find_bms_hook
     return unless @hook&.feature_allowed?
     return unless @hook.settings['enable_label_sync']
@@ -45,11 +44,10 @@ class Crm::Bms::LabelSyncJob < ApplicationJob
   end
 
   def get_label_external_id
-    # Get from cache for now (matches processor service implementation)
-    Rails.cache.read("bms_label_mapping_#{@account.id}_#{@label.id}")
+    Rails.cache.read("bms_label_mapping_#{@label.id}")
   end
 
   def find_bms_hook
-    @account.hooks.where(app_id: 'bms').first
+    Integrations::Hook.where(app_id: 'bms').first
   end
 end

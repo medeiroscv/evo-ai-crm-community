@@ -30,7 +30,7 @@ class Api::V1::Accounts::Integrations::DyteController < Api::V1::Accounts::BaseC
   end
 
   def dyte_processor_service
-    Integrations::Dyte::ProcessorService.new(account: Current.account, conversation: @conversation)
+    Integrations::Dyte::ProcessorService.new(account: nil, conversation: @conversation)
   end
 
   def permitted_params
@@ -38,11 +38,11 @@ class Api::V1::Accounts::Integrations::DyteController < Api::V1::Accounts::BaseC
   end
 
   def fetch_conversation
-    @conversation = Current.account.conversations.find_by!(display_id: permitted_params[:conversation_id])
+    @conversation = Conversation.find_by!(display_id: permitted_params[:conversation_id])
   end
 
   def fetch_message
-    @message = Current.account.messages.find(permitted_params[:message_id])
+    @message = Message.find(permitted_params[:message_id])
     @conversation = @message.conversation
   end
 end

@@ -7,11 +7,11 @@ class Api::V1::Accounts::CallbacksController < Api::V1::Accounts::BaseController
     page_id = params[:page_id]
     inbox_name = params[:inbox_name]
     ActiveRecord::Base.transaction do
-      facebook_channel = Current.account.facebook_pages.create!(
+      facebook_channel = Channel::FacebookPage.create!(
         page_id: page_id, user_access_token: user_access_token,
         page_access_token: page_access_token
       )
-      @facebook_inbox = Current.account.inboxes.create!(name: inbox_name, channel: facebook_channel)
+      @facebook_inbox = Inbox.create!(name: inbox_name, channel: facebook_channel)
       set_instagram_id(page_access_token, facebook_channel)
       set_avatar(@facebook_inbox, page_id)
     end
@@ -44,7 +44,6 @@ class Api::V1::Accounts::CallbacksController < Api::V1::Accounts::BaseController
     Rails.logger.error "Error in set_instagram_id: #{e.message}"
   end
 
-  # get params[:inbox_id], current_account. params[:omniauth_token]
   def reauthorize_page
     if @inbox&.facebook?
       fb_page_id = @inbox.channel.page_id
@@ -62,7 +61,7 @@ class Api::V1::Accounts::CallbacksController < Api::V1::Accounts::BaseController
   private
 
   def inbox
-    @inbox = Current.account.inboxes.find_by(id: params[:inbox_id])
+    @inbox = Inbox.find_by(id: params[:inbox_id])
   end
 
   def update_fb_page(fb_page_id, access_token)
@@ -78,7 +77,7 @@ class Api::V1::Accounts::CallbacksController < Api::V1::Accounts::BaseController
   end
 
   def get_fb_page(fb_page_id)
-    Current.account.facebook_pages.find_by(page_id: fb_page_id)
+    Channel::FacebookPage.find_by(page_id: fb_page_id)
   end
 
   def fb_object
@@ -97,7 +96,7 @@ class Api::V1::Accounts::CallbacksController < Api::V1::Accounts::BaseController
     return [] if data.empty?
 
     data.inject([]) do |result, page_detail|
-      page_detail[:exists] = Current.account.facebook_pages.exists?(page_id: page_detail['id'])
+      page_detail[:exists] = Channel::FacebookPage.exists?(page_id: page_detail['id'])
       result << page_detail
     end
   end

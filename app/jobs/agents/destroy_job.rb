@@ -1,37 +1,32 @@
 class Agents::DestroyJob < ApplicationJob
   queue_as :low
 
-  def perform(account, user)
+  def perform(_account, user)
     ActiveRecord::Base.transaction do
-      destroy_notification_setting(account, user)
-      remove_user_from_teams(account, user)
-      remove_user_from_inboxes(account, user)
-      unassign_conversations(account, user)
+      destroy_notification_setting(user)
+      remove_user_from_teams(user)
+      remove_user_from_inboxes(user)
+      unassign_conversations(user)
     end
   end
 
   private
 
-  def remove_user_from_inboxes(account, user)
-    inboxes = account.inboxes.all
-    inbox_members = user.inbox_members.where(inbox_id: inboxes.pluck(:id))
-    inbox_members.destroy_all
+  def remove_user_from_inboxes(user)
+    user.inbox_members.destroy_all
   end
 
-  def remove_user_from_teams(account, user)
-    teams = account.teams.all
-    team_members = user.team_members.where(team_id: teams.pluck(:id))
-    team_members.destroy_all
+  def remove_user_from_teams(user)
+    user.team_members.destroy_all
   end
 
-  def destroy_notification_setting(account, user)
-    setting = user.notification_settings.find_by(account_id: account.id)
-    setting&.destroy!
+  def destroy_notification_setting(user)
+    user.notification_settings.destroy_all
   end
 
-  def unassign_conversations(account, user)
+  def unassign_conversations(user)
     # rubocop:disable Rails/SkipsModelValidations
-    user.assigned_conversations.where(account: account).in_batches.update_all(assignee_id: nil)
+    user.assigned_conversations.in_batches.update_all(assignee_id: nil)
     # rubocop:enable Rails/SkipsModelValidations
   end
 end

@@ -22,8 +22,8 @@ class ActionCableListener < BaseListener
   end
 
   def account_cache_invalidated(event)
-    account = event.data[:account]
-    tokens = user_tokens(account, account.agents)
+    account = event.data[:account] || single_tenant_account
+    tokens = User.pluck(:pubsub_token).compact.uniq
 
     broadcast(account, tokens, ACCOUNT_CACHE_INVALIDATED, {
                 cache_keys: event.data[:cache_keys]
@@ -84,7 +84,7 @@ class ActionCableListener < BaseListener
 
   def conversation_typing_on(event)
     conversation = event.data[:conversation]
-    account = conversation.account
+    account = single_tenant_account
     user = event.data[:user]
     tokens = typing_event_listener_tokens(account, conversation, user)
 
@@ -100,7 +100,7 @@ class ActionCableListener < BaseListener
 
   def conversation_typing_off(event)
     conversation = event.data[:conversation]
-    account = conversation.account
+    account = single_tenant_account
     user = event.data[:user]
     tokens = typing_event_listener_tokens(account, conversation, user)
 
@@ -173,9 +173,9 @@ class ActionCableListener < BaseListener
     (user_tokens(account, conversation.inbox.members) + [conversation.contact_inbox.pubsub_token]) - [current_user_token]
   end
 
-  def user_tokens(account, agents)
+  def user_tokens(_account, agents)
     agent_tokens = agents.pluck(:pubsub_token)
-    admin_tokens = account.administrators.pluck(:pubsub_token)
+    admin_tokens = User.where(type: 'SuperAdmin').pluck(:pubsub_token)
     (agent_tokens + admin_tokens).uniq
   end
 
@@ -196,10 +196,10 @@ class ActionCableListener < BaseListener
   def broadcast(account, tokens, event_name, data)
     return if tokens.blank?
 
-    payload = data.merge(account_id: account.id)
+    payload = data.dup
     payload[:performer] = Current.user&.push_event_data if Current.user.present?
     uniq_tokens = tokens.uniq
-    Rails.logger.info "ActionCable enqueue event=#{event_name} account_id=#{account.id} recipients=#{uniq_tokens.size}"
+    Rails.logger.info "ActionCable enqueue event=#{event_name} recipients=#{uniq_tokens.size}"
 
     ::ActionCableBroadcastJob.perform_later(uniq_tokens, event_name, payload)
   end

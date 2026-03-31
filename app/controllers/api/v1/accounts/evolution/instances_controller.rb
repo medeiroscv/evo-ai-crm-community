@@ -26,7 +26,7 @@ class Api::V1::Accounts::Evolution::InstancesController < Api::V1::Accounts::Bas
         # List all instances for this account
         channels = Channel::Whatsapp.joins(:inbox)
                                     .where(provider: 'evolution')
-                                    .where(inboxes: { account_id: Current.account.id })
+                                    
 
         instances = channels.map do |ch|
           {
@@ -80,7 +80,6 @@ class Api::V1::Accounts::Evolution::InstancesController < Api::V1::Accounts::Bas
   def find_whatsapp_channel_by_instance_name(instance_name)
     Channel::Whatsapp.joins(:inbox)
                      .where(provider: 'evolution')
-                     .where(inboxes: { account_id: Current.account.id })
                      .find do |ch|
       config = ch.provider_config || {}
       candidates = [

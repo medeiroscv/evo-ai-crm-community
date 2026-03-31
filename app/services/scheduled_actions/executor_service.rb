@@ -94,7 +94,6 @@ module ScheduledActions
       return { success: false, error: 'No conversation found for contact' } unless conversation
 
       message_params = {
-        account_id: scheduled_action.account_id,
         inbox_id: conversation.inbox_id,
         conversation_id: conversation.id,
         content: scheduled_action.payload['message'] || scheduled_action.payload['content'],
@@ -136,8 +135,7 @@ module ScheduledActions
         message_type: :outgoing,
         sender_id: scheduled_action.created_by,
         inbox_id: inbox.id,
-        conversation_id: conversation.id,
-        account_id: scheduled_action.account_id
+        conversation_id: conversation.id
       )
 
       { success: true, data: { message: message, conversation_id: conversation.id } }
@@ -154,14 +152,14 @@ module ScheduledActions
         }
       when 'sms'
         {
-          inbox: scheduled_action.account.inboxes.where(channel_type: 'Channel::Sms').first,
-          error_msg: 'SMS not configured for this account',
+          inbox: Inbox.where(channel_type: 'Channel::Sms').first,
+          error_msg: 'SMS not configured',
           source_id: sms_source_id
         }
       when 'telegram'
         {
-          inbox: scheduled_action.account.inboxes.where(channel_type: 'Channel::Telegram').first,
-          error_msg: 'Telegram not configured for this account',
+          inbox: Inbox.where(channel_type: 'Channel::Telegram').first,
+          error_msg: 'Telegram not configured',
           source_id: telegram_source_id
         }
       else
@@ -184,8 +182,8 @@ module ScheduledActions
     end
 
     def whatsapp_inbox
-      scheduled_action.account.inboxes.find_by(channel_type: 'Channel::Whatsapp') ||
-        scheduled_action.account.inboxes.find_by(channel_type: 'Channel::WhatsappCloud')
+      Inbox.find_by(channel_type: 'Channel::Whatsapp') ||
+        Inbox.find_by(channel_type: 'Channel::WhatsappCloud')
     end
 
     # Generate SMS source_id from phone number
@@ -200,7 +198,7 @@ module ScheduledActions
     # For Telegram, we reuse existing contact_inbox or generate a new UUID
     def telegram_source_id
       # Check if contact already has a Telegram contact_inbox
-      telegram_inbox = scheduled_action.account.inboxes.where(channel_type: 'Channel::Telegram').first
+      telegram_inbox = Inbox.where(channel_type: 'Channel::Telegram').first
       return nil if telegram_inbox.blank?
 
       existing = scheduled_action.contact.contact_inboxes.find_by(inbox_id: telegram_inbox.id)
@@ -237,8 +235,7 @@ module ScheduledActions
       unless conversation
         conversation = inbox.conversations.create!(
           contact_id: scheduled_action.contact_id,
-          contact_inbox_id: contact_inbox.id,
-          account_id: scheduled_action.account_id
+          contact_inbox_id: contact_inbox.id
         )
       end
 
@@ -253,7 +250,7 @@ module ScheduledActions
 
       subject = scheduled_action.payload['subject']
       message = scheduled_action.payload['message']
-      from = scheduled_action.payload['from'] || scheduled_action.account.support_email
+      from = scheduled_action.payload['from'] || Account.first&.support_email || ENV.fetch('MAILER_SENDER_EMAIL', 'noreply@example.com')
 
       return { success: false, error: 'Subject not provided' } if subject.blank?
       return { success: false, error: 'Message not provided' } if message.blank?
@@ -264,8 +261,7 @@ module ScheduledActions
         subject: subject,
         body: message,
         from: from,
-        contact_id: scheduled_action.contact_id,
-        account_id: scheduled_action.account_id
+        contact_id: scheduled_action.contact_id
       ).deliver_later
 
       { success: true, data: { email: scheduled_action.contact.email, subject: subject } }
@@ -309,7 +305,6 @@ module ScheduledActions
       # Create task
       task_data = {
         contact_id: scheduled_action.contact_id,
-        account_id: scheduled_action.account_id,
         title: title,
         description: description,
         due_date: due_date,
@@ -395,7 +390,6 @@ module ScheduledActions
 
       ScheduledActionExecutionLog.create!(
         scheduled_action: scheduled_action,
-        account_id: scheduled_action.account_id,
         status: status,
         result_message: message,
         error_details: result.is_a?(Hash) && result[:error] ? { error: result[:error] } : {},

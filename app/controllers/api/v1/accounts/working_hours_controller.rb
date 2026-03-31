@@ -30,6 +30,6 @@ class Api::V1::Accounts::WorkingHoursController < Api::V1::Accounts::BaseControl
   end
 
   def fetch_working_hour
-    @working_hour = Current.account.working_hours.find(params[:id])
+    @working_hour = WorkingHour.find(params[:id])
   end
 end

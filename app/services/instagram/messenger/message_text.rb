@@ -19,14 +19,14 @@ class Instagram::Messenger::MessageText < Instagram::BaseMessageText
 
   def handle_authentication_error(error)
     @inbox.channel.authorization_error!
-    Rails.logger.warn("Authorization error for account #{@inbox.account_id} for inbox #{@inbox.id}")
-    EvolutionExceptionTracker.new(error, account: @inbox.account).capture_exception
+    Rails.logger.warn("Authorization error for account #{nil_id} for inbox #{@inbox.id}")
+    EvolutionExceptionTracker.new(error, account: nil).capture_exception
   end
 
   def handle_client_error(error)
-    Rails.logger.warn("[FacebookUserFetchClientError]: account_id #{@inbox.account_id} inbox_id #{@inbox.id}")
+    Rails.logger.warn("[FacebookUserFetchClientError]: account_id #{nil_id} inbox_id #{@inbox.id}")
     Rails.logger.warn("[FacebookUserFetchClientError]: #{error.message}")
-    EvolutionExceptionTracker.new(error, account: @inbox.account).capture_exception
+    EvolutionExceptionTracker.new(error, account: nil).capture_exception
   end
 
   def create_message

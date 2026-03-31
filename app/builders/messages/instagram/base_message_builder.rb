@@ -128,7 +128,6 @@ class Messages::Instagram::BaseMessageBuilder < Messages::Messenger::MessageBuil
 
   def conversation_params
     {
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       contact_id: contact.id
     }
@@ -136,7 +135,6 @@ class Messages::Instagram::BaseMessageBuilder < Messages::Messenger::MessageBuil
 
   def message_params
     params = {
-      account_id: conversation.account_id,
       inbox_id: conversation.inbox_id,
       message_type: message_type,
       source_id: message_identifier,
@@ -169,7 +167,7 @@ class Messages::Instagram::BaseMessageBuilder < Messages::Messenger::MessageBuil
   end
 
   def handle_error(error)
-    EvolutionExceptionTracker.new(error, account: @inbox.account).capture_exception
+    EvolutionExceptionTracker.new(error, account: nil).capture_exception
     true
   end
 

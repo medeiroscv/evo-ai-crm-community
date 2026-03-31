@@ -16,16 +16,13 @@
 #  index_teams_on_name_and_account_id  (name,account_id) UNIQUE
 #
 class Team < ApplicationRecord
-  include AccountCacheRevalidator
-
-  belongs_to :account
   has_many :team_members, dependent: :destroy_async
   has_many :members, through: :team_members, source: :user
   has_many :conversations, dependent: :nullify
 
   validates :name,
             presence: { message: I18n.t('errors.validations.presence') },
-            uniqueness: { scope: :account_id, case_sensitive: false },
+            uniqueness: { case_sensitive: false },
             length: { maximum: 255 }
   validates :description, length: { maximum: 500 }
 
@@ -41,7 +38,6 @@ class Team < ApplicationRecord
     created_members = team_members.create!(team_members_to_create)
     added_users = created_members.filter_map(&:user)
 
-    update_account_cache
     added_users
   end
 
@@ -50,15 +46,14 @@ class Team < ApplicationRecord
   # @return [void]
   def remove_members(user_ids)
     team_members.where(user_id: user_ids).destroy_all
-    update_account_cache
   end
 
   def messages
-    account.messages.where(conversation_id: conversations.pluck(:id))
+    Message.where(conversation_id: conversations.pluck(:id))
   end
 
   def reporting_events
-    account.reporting_events.where(conversation_id: conversations.pluck(:id))
+    ReportingEvent.where(conversation_id: conversations.pluck(:id))
   end
 
   def push_event_data

@@ -32,11 +32,7 @@ class Api::V1::Widget::ConfigsController < Api::V1::Widget::BaseController
   end
 
   def additional_attributes
-    if @web_widget.inbox.account.feature_enabled?('ip_lookup')
-      { created_at_ip: request.remote_ip }
-    else
-      {}
-    end
+    { created_at_ip: request.remote_ip }
   end
 
   def enforce_widget_token_validation?

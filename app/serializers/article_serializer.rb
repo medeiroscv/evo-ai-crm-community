@@ -29,7 +29,6 @@ module ArticleSerializer
       category_id: article.category_id,
       portal_id: article.portal_id,
       author_id: article.author_id,
-      account_id: article.account_id,
       views: article.views,
       status: article.status,
       created_at: article.created_at&.iso8601,

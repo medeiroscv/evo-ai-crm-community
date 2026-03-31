@@ -1,14 +1,12 @@
 # Herda diretamente do controller de accounts
 class Api::V1::Oauth::InboxesController < Api::V1::Accounts::InboxesController
   # Remove os middlewares do controller pai que dependem de account_id na URL
-  skip_before_action :current_account
   skip_before_action :authenticate_request!
 
   # Aplica middleware OAuth
   include Doorkeeper::Rails::Helpers
   include OauthAccountHelper
   before_action :ensure_oauth_authentication!
-  before_action :current_account
 
   private
 

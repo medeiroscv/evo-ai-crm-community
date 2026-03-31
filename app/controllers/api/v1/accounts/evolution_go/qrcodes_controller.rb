@@ -69,7 +69,6 @@ class Api::V1::Accounts::EvolutionGo::QrcodesController < Api::V1::Accounts::Bas
     whatsapp_channel = Channel::Whatsapp.joins(:inbox)
                                         .where(provider: 'evolution_go')
                                         .where('provider_config @> ?', { instance_name: identifier }.to_json)
-                                        .where(inboxes: { account_id: Current.account.id })
                                         .first
 
     # If not found by name, try by UUID
@@ -77,7 +76,6 @@ class Api::V1::Accounts::EvolutionGo::QrcodesController < Api::V1::Accounts::Bas
       whatsapp_channel = Channel::Whatsapp.joins(:inbox)
                                           .where(provider: 'evolution_go')
                                           .where('provider_config @> ?', { instance_uuid: identifier }.to_json)
-                                          .where(inboxes: { account_id: Current.account.id })
                                           .first
     end
 

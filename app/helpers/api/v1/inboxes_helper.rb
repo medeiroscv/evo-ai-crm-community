@@ -108,22 +108,17 @@ module Api::V1::InboxesHelper
 
   def account_channels_method
     {
-      'web_widget' => Current.account.web_widgets,
-      'api' => Current.account.api_channels,
-      'email' => Current.account.email_channels,
-      'line' => Current.account.line_channels,
-      'telegram' => Current.account.telegram_channels,
-      'whatsapp' => Current.account.whatsapp_channels,
-      'sms' => Current.account.sms_channels
+      'web_widget' => Channel::WebWidget,
+      'api' => Channel::Api,
+      'email' => Channel::Email,
+      'line' => Channel::Line,
+      'telegram' => Channel::Telegram,
+      'whatsapp' => Channel::Whatsapp,
+      'sms' => Channel::Sms
     }[permitted_params[:channel][:type]]
   end
 
   def validate_limit
-    inbox_limit = Current.account.usage_limits[:inboxes]
-    # Se o limite for 0 ou >= EvolutionApp.max_limit, é considerado ilimitado
-    return if inbox_limit == 0 || inbox_limit >= EvolutionApp.max_limit.to_i
-    return unless Current.account.inboxes.count >= inbox_limit
-
-    render_payment_required('Account limit exceeded. Upgrade to a higher plan')
+    # No account-level limits in community edition
   end
 end

@@ -13,7 +13,7 @@ class Api::V1::Accounts::Twitter::AuthorizationsController < Api::V1::Accounts::
   def create
     @response = twitter_client.request_oauth_token(url: twitter_callback_url)
     if @response.status == '200'
-      ::Redis::Alfred.setex(oauth_token, Current.account.id)
+      ::Redis::Alfred.setex(oauth_token, 'community')
       render json: { success: true, url: oauth_authorize_endpoint(oauth_token) }
     else
       render json: { success: false }, status: :unprocessable_entity

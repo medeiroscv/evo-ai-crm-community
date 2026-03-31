@@ -21,9 +21,9 @@ class OauthCallbackController < ApplicationController
     inbox, already_exists = find_or_create_inbox
 
     if already_exists
-      redirect_to app_email_inbox_settings_url(account_id: account.id, inbox_id: inbox.id)
+      redirect_to app_email_inbox_settings_url(inbox_id: inbox.id)
     else
-      redirect_to app_email_inbox_agents_url(account_id: account.id, inbox_id: inbox.id)
+      redirect_to app_email_inbox_agents_url(inbox_id: inbox.id)
     end
   end
 
@@ -46,7 +46,7 @@ class OauthCallbackController < ApplicationController
   end
 
   def find_channel_by_email
-    Channel::Email.find_by(email: users_data['email'], account: account)
+    Channel::Email.find_by(email: users_data['email'])
   end
 
   def update_channel(channel_email)
@@ -79,10 +79,9 @@ class OauthCallbackController < ApplicationController
 
   def create_channel_with_inbox
     ActiveRecord::Base.transaction do
-      channel_email = Channel::Email.create!(email: users_data['email'], account: account)
+      channel_email = Channel::Email.create!(email: users_data['email'])
 
-      account.inboxes.create!(
-        account: account,
+      Inbox.create!(
         channel: channel_email,
         name: users_data['name'] || fallback_name
       )
@@ -93,14 +92,6 @@ class OauthCallbackController < ApplicationController
   def users_data
     decoded_token = JWT.decode parsed_body[:id_token], nil, false
     decoded_token[0]
-  end
-
-  def account_id
-    ::Redis::Alfred.get(cache_key)
-  end
-
-  def account
-    @account ||= Account.find(account_id)
   end
 
   # Fallback name, for when name field is missing from users_data

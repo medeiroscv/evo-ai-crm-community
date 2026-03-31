@@ -1,10 +1,8 @@
 class Contacts::FilterService < FilterService
   ATTRIBUTE_MODEL = 'contact_attribute'.freeze
 
-  def initialize(account, user, params)
-    @account = account
-    # TODO: Change the order of arguments in FilterService maybe?
-    # account, user, params makes more sense
+  def initialize(_account_or_nil = nil, user = nil, params = nil)
+    # account parameter kept for call-site compatibility but no longer used for scoping
     super(params, user)
   end
 
@@ -29,9 +27,8 @@ class Contacts::FilterService < FilterService
     end
   end
 
-  # TODO: @account.contacts.resolved_contacts ? to stay consistant with the behavior in ui
   def base_relation
-    @account.contacts
+    Contact.all
   end
 
   def filter_config

@@ -3,23 +3,20 @@
 require 'rails_helper'
 
 RSpec.describe Api::V1::Accounts::PipelineServiceDefinitionsController, type: :controller do
-  let(:account) { Account.create!(name: 'Spec Account') }
   let(:user) { User.create!(email: 'spec-user@example.com', name: 'Spec User') }
   let(:pipeline) do
-    Pipeline.create!(account: account, name: 'Sales Pipeline', pipeline_type: 'sales', created_by: user)
+    Pipeline.create!(name: 'Sales Pipeline', pipeline_type: 'sales', created_by: user)
   end
 
   before do
-    Current.account = account
     Current.user = user
     Current.service_authenticated = true
     Current.authentication_method = 'service_token'
 
     # Bypass authentication and authorization
     allow(controller).to receive(:authenticate_request!).and_return(true)
-    allow(controller).to receive(:current_account).and_return(account)
     allow(controller).to receive(:authorize).and_return(true)
-    allow(controller).to receive(:pundit_user).and_return({ user: user, account: account, account_user: nil })
+    allow(controller).to receive(:pundit_user).and_return({ user: user, account_user: nil })
   end
 
   after do
@@ -29,19 +26,19 @@ RSpec.describe Api::V1::Accounts::PipelineServiceDefinitionsController, type: :c
   describe 'GET #index' do
     let!(:service_a) do
       pipeline.pipeline_service_definitions.create!(
-        name: 'Consulting', default_value: 200.00, currency: 'BRL', account: account
+        name: 'Consulting', default_value: 200.00, currency: 'BRL'
       )
     end
 
     let!(:service_b) do
       pipeline.pipeline_service_definitions.create!(
-        name: 'Support', default_value: 100.00, currency: 'BRL', account: account
+        name: 'Support', default_value: 100.00, currency: 'BRL'
       )
     end
 
     let!(:inactive_service) do
       pipeline.pipeline_service_definitions.create!(
-        name: 'Deprecated', default_value: 50.00, currency: 'BRL', account: account, active: false
+        name: 'Deprecated', default_value: 50.00, currency: 'BRL', active: false
       )
     end
 
@@ -67,7 +64,7 @@ RSpec.describe Api::V1::Accounts::PipelineServiceDefinitionsController, type: :c
 
       first = JSON.parse(response.body)['data'].first
       expect(first).to include(
-        'id', 'pipeline_id', 'account_id', 'name',
+        'id', 'pipeline_id', 'name',
         'default_value', 'currency', 'active',
         'formatted_default_value', 'created_at', 'updated_at'
       )
@@ -79,7 +76,7 @@ RSpec.describe Api::V1::Accounts::PipelineServiceDefinitionsController, type: :c
   describe 'GET #show' do
     let!(:service_def) do
       pipeline.pipeline_service_definitions.create!(
-        name: 'Consulting', default_value: 250.50, currency: 'BRL', account: account, description: 'Hourly consulting'
+        name: 'Consulting', default_value: 250.50, currency: 'BRL', description: 'Hourly consulting'
       )
     end
 
@@ -126,12 +123,11 @@ RSpec.describe Api::V1::Accounts::PipelineServiceDefinitionsController, type: :c
       expect(data['default_value']).to eq(150.0)
       expect(data['currency']).to eq('USD')
       expect(data['pipeline_id']).to eq(pipeline.id)
-      expect(data['account_id']).to eq(account.id)
     end
 
     it 'rejects duplicate name in same pipeline' do
       pipeline.pipeline_service_definitions.create!(
-        name: 'New Service', default_value: 100, currency: 'BRL', account: account
+        name: 'New Service', default_value: 100, currency: 'BRL'
       )
 
       post :create, params: valid_params
@@ -170,7 +166,7 @@ RSpec.describe Api::V1::Accounts::PipelineServiceDefinitionsController, type: :c
   describe 'PATCH #update' do
     let!(:service_def) do
       pipeline.pipeline_service_definitions.create!(
-        name: 'Original', default_value: 100.00, currency: 'BRL', account: account
+        name: 'Original', default_value: 100.00, currency: 'BRL'
       )
     end
 
@@ -201,7 +197,7 @@ RSpec.describe Api::V1::Accounts::PipelineServiceDefinitionsController, type: :c
   describe 'DELETE #destroy' do
     let!(:service_def) do
       pipeline.pipeline_service_definitions.create!(
-        name: 'To Deactivate', default_value: 100.00, currency: 'BRL', account: account
+        name: 'To Deactivate', default_value: 100.00, currency: 'BRL'
       )
     end
 

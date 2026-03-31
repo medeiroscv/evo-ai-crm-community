@@ -28,14 +28,13 @@ module Webhooks
 
   def channel_is_inactive?(channel)
     return true if channel.blank?
-    return true unless channel.account.active?
 
     false
   end
 
   def log_inactive_channel(channel, params)
     message = if channel&.id
-                "Account #{channel.account.id} is not active for channel #{channel.id}"
+                "Channel #{channel.id} is inactive"
               else
                 "Channel not found for bot_token: #{params[:bot_token]}"
               end

@@ -31,7 +31,7 @@ class Api::V1::Accounts::NotificationSettingsController < Api::V1::Accounts::Bas
   end
 
   def load_notification_setting
-    @notification_setting = @user.notification_settings.find_or_initialize_by(account_id: Current.account.id)
+    @notification_setting = @user.notification_settings.first_or_initialize
     @notification_setting.save! if @notification_setting.new_record?
   end
 

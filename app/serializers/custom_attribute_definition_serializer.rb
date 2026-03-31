@@ -29,7 +29,6 @@ module CustomAttributeDefinitionSerializer
       attribute_values: custom_attribute_definition.attribute_values,
       regex_pattern: custom_attribute_definition.regex_pattern,
       regex_cue: custom_attribute_definition.regex_cue,
-      account_id: custom_attribute_definition.account_id,
       created_at: custom_attribute_definition.created_at&.iso8601,
       updated_at: custom_attribute_definition.updated_at&.iso8601
     }

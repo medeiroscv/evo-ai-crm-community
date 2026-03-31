@@ -33,7 +33,7 @@ class Api::V2::Accounts::SummaryReportsController < Api::V1::Accounts::BaseContr
   end
 
   def render_report_with(builder_class)
-    builder = builder_class.new(account: Current.account, params: @builder_params)
+    builder = builder_class.new(account: nil, params: @builder_params)
     render json: builder.build
   end
 

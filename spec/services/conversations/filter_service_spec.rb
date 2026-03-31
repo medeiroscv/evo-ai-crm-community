@@ -5,9 +5,8 @@ require 'rails_helper'
 RSpec.describe Conversations::FilterService do
   describe '#conversations' do
     it 'orders by last_activity_at desc and paginates' do
-      account = instance_double(Account)
       user = instance_double(User)
-      service = described_class.new({}, user, account)
+      service = described_class.new({}, user)
 
       relation = double('Relation')
       service.instance_variable_set(:@conversations, relation)

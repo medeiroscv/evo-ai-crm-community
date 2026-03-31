@@ -550,7 +550,6 @@ class AgentBotListener < BaseListener
       id: payload[:id],
       content: payload[:content] || '',
       conversation: conversation,
-      account: conversation.account,
       inbox: conversation.inbox,
       message_type: payload[:message_type] == 'incoming' ? :incoming : :outgoing,
       created_at: payload[:created_at] ? Time.zone.at(payload[:created_at]) : Time.current

@@ -9,7 +9,7 @@ class Api::V1::Accounts::Integrations::HooksController < Api::V1::Accounts::Base
   before_action :fetch_hook, except: [:create]
 
   def create
-    @hook = Current.account.hooks.create!(permitted_params)
+    @hook = Integrations::Hook.create!(permitted_params)
     
     success_response(
       data: IntegrationHookSerializer.serialize(@hook),
@@ -77,7 +77,7 @@ class Api::V1::Accounts::Integrations::HooksController < Api::V1::Accounts::Base
   private
 
   def fetch_hook
-    @hook = Current.account.hooks.find(params[:id])
+    @hook = Integrations::Hook.find(params[:id])
   end
 
 

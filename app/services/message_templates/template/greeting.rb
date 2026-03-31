@@ -6,20 +6,19 @@ class MessageTemplates::Template::Greeting
       conversation.messages.create!(greeting_message_params)
     end
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: conversation.account).capture_exception
+    EvolutionExceptionTracker.new(e, account: nil).capture_exception
     true
   end
 
   private
 
-  delegate :contact, :account, to: :conversation
+  delegate :contact, to: :conversation
   delegate :inbox, to: :message
 
   def greeting_message_params
     content = @conversation.inbox&.greeting_message
 
     {
-      account_id: @conversation.account_id,
       inbox_id: @conversation.inbox_id,
       message_type: :template,
       content: content

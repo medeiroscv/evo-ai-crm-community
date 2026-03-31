@@ -9,8 +9,7 @@ RSpec.describe 'EvoAuth integration through API auth filter', type: :request do
   let(:token) { 'test-bearer-token' }
   let(:headers) { { 'Authorization' => "Bearer #{token}" } }
   let!(:user) { User.create!(name: 'Auth User', email: 'auth-user@example.com') }
-  let!(:account) { Account.create!(name: 'Spec Account') }
-  let!(:account_user) { AccountUser.create!(user: user, account: account) }
+  let(:account_id) { 1 }
 
   around do |example|
     original_base_url = ENV['EVO_AUTH_SERVICE_URL']
@@ -82,7 +81,7 @@ RSpec.describe 'EvoAuth integration through API auth filter', type: :request do
       )
 
     put '/api/v1/profile/set_active_account',
-        params: { profile: { account_id: account.id } },
+        params: { profile: { account_id: account_id } },
         headers: headers,
         as: :json
 
@@ -106,7 +105,7 @@ RSpec.describe 'EvoAuth integration through API auth filter', type: :request do
       )
 
     put '/api/v1/profile/set_active_account',
-        params: { profile: { account_id: account.id } },
+        params: { profile: { account_id: account_id } },
         headers: headers,
         as: :json
 
@@ -133,7 +132,7 @@ RSpec.describe 'EvoAuth integration through API auth filter', type: :request do
       .to_return(status: 200, body: '', headers: { 'Content-Type' => 'application/json' })
 
     put '/api/v1/profile/set_active_account',
-        params: { profile: { account_id: account.id } },
+        params: { profile: { account_id: account_id } },
         headers: headers,
         as: :json
 
@@ -151,14 +150,14 @@ RSpec.describe 'EvoAuth integration through API auth filter', type: :request do
           success: true,
           data: {
             user: { id: user.id, email: user.email },
-            accounts: [{ id: account.id }]
+            accounts: [{ id: account_id }]
           }
         }.to_json,
         headers: { 'Content-Type' => 'application/json' }
       )
 
     put '/api/v1/profile/set_active_account',
-        params: { profile: { account_id: account.id } },
+        params: { profile: { account_id: account_id } },
         headers: headers,
         as: :json
 

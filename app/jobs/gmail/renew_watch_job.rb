@@ -15,7 +15,7 @@ class Gmail::RenewWatchJob < ApplicationJob
     rescue StandardError => e
       failed_count += 1
       Rails.logger.error "[GMAIL_PUSH] Failed to renew watch for #{channel.email}: #{e.message}"
-      EvolutionExceptionTracker.new(e, account: channel.account).capture_exception
+      EvolutionExceptionTracker.new(e, account: nil).capture_exception
     end
 
     Rails.logger.info "[GMAIL_PUSH] Watch renewal completed: #{renewed_count} successful, #{failed_count} failed"

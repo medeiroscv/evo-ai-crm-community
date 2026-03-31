@@ -5,8 +5,7 @@ require 'rails_helper'
 RSpec.describe ScheduledActions::ExecutorService do
   subject(:service) { described_class.new(scheduled_action) }
 
-  let(:scheduled_action) { instance_double(ScheduledAction, account: account, contact: contact) }
-  let(:account) { instance_double(Account, inboxes: inboxes_relation) }
+  let(:scheduled_action) { instance_double(ScheduledAction, contact: contact) }
   let(:contact) { instance_double(Contact, phone_number: '+5511999999999', contact_inboxes: contact_inboxes_relation) }
   let(:contact_inboxes_relation) { instance_double(ActiveRecord::Relation) }
   let(:inboxes_relation) { instance_double(ActiveRecord::Relation) }
@@ -17,6 +16,10 @@ RSpec.describe ScheduledActions::ExecutorService do
   let(:sms_scope) { instance_double(ActiveRecord::Relation, first: sms_inbox) }
   let(:telegram_scope) { instance_double(ActiveRecord::Relation, first: telegram_inbox) }
   let(:telegram_contact_inbox) { instance_double(ContactInbox, source_id: 'telegram-source-id') }
+
+  before do
+    allow(service).to receive(:inboxes_relation).and_return(inboxes_relation)
+  end
 
   describe '#channel_config' do
     it 'uses Channel::Whatsapp when available' do

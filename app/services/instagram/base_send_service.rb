@@ -23,7 +23,7 @@ class Instagram::BaseSendService < Base::SendOnChannelService
   end
 
   def handle_error(error)
-    EvolutionExceptionTracker.new(error, account: message.account, user: message.sender).capture_exception
+    EvolutionExceptionTracker.new(error, account: nil, user: message.sender).capture_exception
   end
 
   def message_params

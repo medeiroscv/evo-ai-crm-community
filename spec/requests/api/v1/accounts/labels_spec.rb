@@ -3,12 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe 'POST /api/v1/labels', type: :request do
-  let(:account) { Account.create!(name: 'Spec Account') }
   let(:service_token) { 'spec-service-token' }
   let(:headers) do
     {
-      'X-Service-Token' => service_token,
-      'account-id' => account.id.to_s
+      'X-Service-Token' => service_token
     }
   end
 
@@ -33,7 +31,7 @@ RSpec.describe 'POST /api/v1/labels', type: :request do
            as: :json
 
       expect(response).to have_http_status(:created)
-      created_label = account.labels.find_by(title: 'vip')
+      created_label = Label.find_by(title: 'vip')
       expect(created_label).to be_present
       expect(created_label.title).to eq('vip')
 
@@ -56,7 +54,7 @@ RSpec.describe 'POST /api/v1/labels', type: :request do
            as: :json
 
       expect(response).to have_http_status(:created)
-      created_label = account.labels.find_by(title: 'high priority')
+      created_label = Label.find_by(title: 'high priority')
       expect(created_label).to be_present
       expect(created_label.title).to eq('high priority')
 
@@ -79,7 +77,7 @@ RSpec.describe 'POST /api/v1/labels', type: :request do
            as: :json
 
       expect(response).to have_http_status(:created)
-      created_label = account.labels.find_by(title: 'high priority')
+      created_label = Label.find_by(title: 'high priority')
       expect(created_label).to be_present
       expect(created_label.title).to eq('high priority')
 
@@ -96,7 +94,7 @@ RSpec.describe 'POST /api/v1/labels', type: :request do
            as: :json
 
       expect(response).to have_http_status(:created)
-      created_label = account.labels.find_by(title: 'high priority')
+      created_label = Label.find_by(title: 'high priority')
       expect(created_label).to be_present
       expect(created_label.title).to eq('high priority')
 
@@ -113,7 +111,7 @@ RSpec.describe 'POST /api/v1/labels', type: :request do
            as: :json
 
       expect(response).to have_http_status(:created)
-      created_label = account.labels.find_by(title: 'customer support - urgent')
+      created_label = Label.find_by(title: 'customer support - urgent')
       expect(created_label).to be_present
       expect(created_label.title).to eq('customer support - urgent')
 
@@ -123,8 +121,8 @@ RSpec.describe 'POST /api/v1/labels', type: :request do
       expect(json_response['message']).to eq('Label created successfully')
     end
 
-    it 'enforces uniqueness per account' do
-      account.labels.create!(title: 'duplicate label')
+    it 'enforces uniqueness' do
+      Label.create!(title: 'duplicate label')
 
       post '/api/v1/labels',
            params: { label: { title: 'duplicate label' } },
@@ -144,25 +142,6 @@ RSpec.describe 'POST /api/v1/labels', type: :request do
         'full_messages' => be_an(Array)
       )
       expect(json_response['meta']).to include('timestamp', 'path', 'method')
-    end
-
-    it 'allows same title in different accounts' do
-      other_account = Account.create!(name: 'Other Account')
-      other_account.labels.create!(title: 'shared label')
-
-      post '/api/v1/labels',
-           params: { label: { title: 'shared label' } },
-           headers: headers,
-           as: :json
-
-      expect(response).to have_http_status(:created)
-      created_label = account.labels.find_by(title: 'shared label')
-      expect(created_label).to be_present
-
-      expect(json_response['success']).to be(true)
-      expect(json_response['data']['title']).to eq('shared label')
-      expect(json_response['meta']).to include('timestamp')
-      expect(json_response['message']).to eq('Label created successfully')
     end
 
     it 'rejects empty title' do
@@ -231,7 +210,7 @@ RSpec.describe 'POST /api/v1/labels', type: :request do
   end
 
   describe 'PUT /api/v1/labels/:id' do
-    let(:label) { account.labels.create!(title: 'original title') }
+    let(:label) { Label.create!(title: 'original title') }
 
     it 'updates label title with spaces' do
       put "/api/v1/labels/#{label.id}",

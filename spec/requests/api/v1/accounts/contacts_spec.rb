@@ -3,12 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe 'POST /api/v1/contacts', type: :request do
-  let(:account) { Account.create!(name: 'Spec Account') }
   let(:service_token) { 'spec-service-token' }
   let(:headers) do
     {
-      'X-Service-Token' => service_token,
-      'account-id' => account.id.to_s
+      'X-Service-Token' => service_token
     }
   end
 
@@ -32,7 +30,7 @@ RSpec.describe 'POST /api/v1/contacts', type: :request do
          as: :json
 
     expect(response).to have_http_status(:created)
-    created_contact = account.contacts.find_by(email: 'john-one@example.com')
+    created_contact = Contact.find_by(email: 'john-one@example.com')
     expect(created_contact).to be_present
     expect(created_contact.label_list).to eq(['vip'])
   end
@@ -44,7 +42,7 @@ RSpec.describe 'POST /api/v1/contacts', type: :request do
          as: :json
 
     expect(response).to have_http_status(:created)
-    created_contact = account.contacts.find_by(email: 'john-multi@example.com')
+    created_contact = Contact.find_by(email: 'john-multi@example.com')
     expect(created_contact).to be_present
     expect(created_contact.label_list).to match_array(%w[vip sales])
   end
@@ -56,7 +54,7 @@ RSpec.describe 'POST /api/v1/contacts', type: :request do
          as: :json
 
     expect(response).to have_http_status(:created)
-    created_contact = account.contacts.find_by(email: 'john-plain@example.com')
+    created_contact = Contact.find_by(email: 'john-plain@example.com')
     expect(created_contact).to be_present
     expect(created_contact.label_list).to eq([])
   end
@@ -76,13 +74,11 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
   describe '#listable_contacts' do
     subject(:listable_contact_ids) { controller.send(:listable_contacts).pluck(:id) }
 
-    let(:account) { Account.create!(name: 'Listable Contacts Account') }
-    let!(:resolved_contact) { Contact.create!(account: account, name: 'Has Email', email: 'has-email@example.com') }
-    let!(:name_only_contact) { Contact.create!(account: account, name: 'Name Only Contact') }
-    let!(:blank_name_contact) { Contact.create!(account: account, name: '   ') }
+    let!(:resolved_contact) { Contact.create!(name: 'Has Email', email: 'has-email@example.com') }
+    let!(:name_only_contact) { Contact.create!(name: 'Name Only Contact') }
+    let!(:blank_name_contact) { Contact.create!(name: '   ') }
 
     before do
-      Current.account = account
       allow(controller).to receive(:params).and_return(ActionController::Parameters.new)
     end
 
@@ -157,20 +153,16 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
   end
 
   describe 'DELETE /api/v1/accounts/:account_id/contacts/:id' do
-    let(:account) { Account.create!(name: 'Test Account') }
     let(:user) { User.create!(email: 'test@example.com', name: 'Test User') }
-    let(:contact) { Contact.create!(account: account, name: 'Test Contact', email: 'contact@example.com') }
+    let(:contact) { Contact.create!(name: 'Test Contact', email: 'contact@example.com') }
     let(:headers) do
       {
-        'X-Service-Token' => 'spec-service-token',
-        'account-id' => account.id.to_s
+        'X-Service-Token' => 'spec-service-token'
       }
     end
 
     before do
       ENV['EVOAI_CRM_API_TOKEN'] = 'spec-service-token'
-      AccountUser.create!(account: account, user: user)
-      Current.account = account
       Current.user = user
     end
 
@@ -180,7 +172,7 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
     end
 
     context 'when contact has pipeline items directly linked (leads)' do
-      let!(:pipeline) { Pipeline.create!(account: account, name: 'Test Pipeline', pipeline_type: 'lead') }
+      let!(:pipeline) { Pipeline.create!(name: 'Test Pipeline', pipeline_type: 'lead') }
       let!(:pipeline_stage) { PipelineStage.create!(pipeline: pipeline, name: 'Stage 1', position: 1) }
       let!(:pipeline_item) do
         PipelineItem.create!(
@@ -194,7 +186,7 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
       it 'deletes the contact and removes all directly linked pipeline items' do
         expect(PipelineItem.exists?(pipeline_item.id)).to be true
 
-        delete "/api/v1/accounts/#{account.id}/contacts/#{contact.id}", headers: headers
+        delete "/api/v1/accounts/0/contacts/#{contact.id}", headers: headers
 
         expect(response).to have_http_status(:ok)
         expect(Contact.exists?(contact.id)).to be false
@@ -203,10 +195,10 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
     end
 
     context 'when contact has pipeline items linked via conversations (deals)' do
-      let!(:inbox) { Inbox.create!(account: account, name: 'Test Inbox') }
-      let!(:contact_inbox) { ContactInbox.create!(contact: contact, inbox: inbox, account: account) }
-      let!(:conversation) { Conversation.create!(account: account, inbox: inbox, contact: contact, contact_inbox: contact_inbox) }
-      let!(:pipeline) { Pipeline.create!(account: account, name: 'Test Pipeline', pipeline_type: 'deal') }
+      let!(:inbox) { Inbox.create!(name: 'Test Inbox') }
+      let!(:contact_inbox) { ContactInbox.create!(contact: contact, inbox: inbox) }
+      let!(:conversation) { Conversation.create!(inbox: inbox, contact: contact, contact_inbox: contact_inbox) }
+      let!(:pipeline) { Pipeline.create!(name: 'Test Pipeline', pipeline_type: 'deal') }
       let!(:pipeline_stage) { PipelineStage.create!(pipeline: pipeline, name: 'Stage 1', position: 1) }
       let!(:pipeline_item) do
         PipelineItem.create!(
@@ -221,7 +213,7 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
         expect(PipelineItem.exists?(pipeline_item.id)).to be true
         expect(pipeline_item.conversation_id).to eq(conversation.id)
 
-        delete "/api/v1/accounts/#{account.id}/contacts/#{contact.id}", headers: headers
+        delete "/api/v1/accounts/0/contacts/#{contact.id}", headers: headers
 
         expect(response).to have_http_status(:ok)
         expect(Contact.exists?(contact.id)).to be false
@@ -230,11 +222,11 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
     end
 
     context 'when contact has both direct and conversation-linked pipeline items' do
-      let!(:inbox) { Inbox.create!(account: account, name: 'Test Inbox') }
-      let!(:contact_inbox) { ContactInbox.create!(contact: contact, inbox: inbox, account: account) }
-      let!(:conversation) { Conversation.create!(account: account, inbox: inbox, contact: contact, contact_inbox: contact_inbox) }
-      let!(:lead_pipeline) { Pipeline.create!(account: account, name: 'Lead Pipeline', pipeline_type: 'lead') }
-      let!(:deal_pipeline) { Pipeline.create!(account: account, name: 'Deal Pipeline', pipeline_type: 'deal') }
+      let!(:inbox) { Inbox.create!(name: 'Test Inbox') }
+      let!(:contact_inbox) { ContactInbox.create!(contact: contact, inbox: inbox) }
+      let!(:conversation) { Conversation.create!(inbox: inbox, contact: contact, contact_inbox: contact_inbox) }
+      let!(:lead_pipeline) { Pipeline.create!(name: 'Lead Pipeline', pipeline_type: 'lead') }
+      let!(:deal_pipeline) { Pipeline.create!(name: 'Deal Pipeline', pipeline_type: 'deal') }
       let!(:lead_stage) { PipelineStage.create!(pipeline: lead_pipeline, name: 'Stage 1', position: 1) }
       let!(:deal_stage) { PipelineStage.create!(pipeline: deal_pipeline, name: 'Stage 1', position: 1) }
       let!(:lead_item) do
@@ -258,7 +250,7 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
         expect(PipelineItem.exists?(lead_item.id)).to be true
         expect(PipelineItem.exists?(deal_item.id)).to be true
 
-        delete "/api/v1/accounts/#{account.id}/contacts/#{contact.id}", headers: headers
+        delete "/api/v1/accounts/0/contacts/#{contact.id}", headers: headers
 
         expect(response).to have_http_status(:ok)
         expect(Contact.exists?(contact.id)).to be false
@@ -269,7 +261,7 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
 
     context 'when contact has no pipeline items' do
       it 'deletes the contact successfully' do
-        delete "/api/v1/accounts/#{account.id}/contacts/#{contact.id}", headers: headers
+        delete "/api/v1/accounts/0/contacts/#{contact.id}", headers: headers
 
         expect(response).to have_http_status(:ok)
         expect(Contact.exists?(contact.id)).to be false
@@ -277,9 +269,9 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
     end
 
     context 'when contact deletion fails due to foreign key constraint' do
-      let!(:inbox) { Inbox.create!(account: account, name: 'Test Inbox') }
-      let!(:contact_inbox) { ContactInbox.create!(contact: contact, inbox: inbox, account: account) }
-      let!(:conversation) { Conversation.create!(account: account, inbox: inbox, contact: contact, contact_inbox: contact_inbox) }
+      let!(:inbox) { Inbox.create!(name: 'Test Inbox') }
+      let!(:contact_inbox) { ContactInbox.create!(contact: contact, inbox: inbox) }
+      let!(:conversation) { Conversation.create!(inbox: inbox, contact: contact, contact_inbox: contact_inbox) }
 
       before do
         allow_any_instance_of(Contact).to receive(:destroy!).and_raise(
@@ -288,7 +280,7 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
       end
 
       it 'returns error response with OPERATION_NOT_ALLOWED code' do
-        delete "/api/v1/accounts/#{account.id}/contacts/#{contact.id}", headers: headers
+        delete "/api/v1/accounts/0/contacts/#{contact.id}", headers: headers
 
         expect(response).to have_http_status(:unprocessable_entity)
         json_data = JSON.parse(response.body)
@@ -307,7 +299,7 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
       end
 
       it 'returns error response with validation errors' do
-        delete "/api/v1/accounts/#{account.id}/contacts/#{contact.id}", headers: headers
+        delete "/api/v1/accounts/0/contacts/#{contact.id}", headers: headers
 
         expect(response).to have_http_status(:unprocessable_entity)
         json_data = JSON.parse(response.body)
@@ -320,22 +312,18 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
   end
 
   describe 'AC2: Pipeline list endpoints after contact deletion' do
-    let(:account) { Account.create!(name: 'Test Account') }
     let(:user) { User.create!(email: 'test@example.com', name: 'Test User') }
-    let(:contact) { Contact.create!(account: account, name: 'Test Contact', email: 'contact@example.com') }
-    let(:pipeline) { Pipeline.create!(account: account, name: 'Test Pipeline', pipeline_type: 'lead', created_by: user) }
+    let(:contact) { Contact.create!(name: 'Test Contact', email: 'contact@example.com') }
+    let(:pipeline) { Pipeline.create!(name: 'Test Pipeline', pipeline_type: 'lead', created_by: user) }
     let(:pipeline_stage) { PipelineStage.create!(pipeline: pipeline, name: 'Stage 1', position: 1) }
     let(:headers) do
       {
-        'X-Service-Token' => 'spec-service-token',
-        'account-id' => account.id.to_s
+        'X-Service-Token' => 'spec-service-token'
       }
     end
 
     before do
       ENV['EVOAI_CRM_API_TOKEN'] = 'spec-service-token'
-      AccountUser.create!(account: account, user: user)
-      Current.account = account
       Current.user = user
     end
 
@@ -352,10 +340,10 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
         entered_at: Time.current
       )
 
-      delete "/api/v1/accounts/#{account.id}/contacts/#{contact.id}", headers: headers
+      delete "/api/v1/accounts/0/contacts/#{contact.id}", headers: headers
       expect(response).to have_http_status(:ok)
 
-      get "/api/v1/accounts/#{account.id}/pipelines/#{pipeline.id}/items", headers: headers
+      get "/api/v1/accounts/0/pipelines/#{pipeline.id}/items", headers: headers
       expect(response).to have_http_status(:ok)
 
       json_data = JSON.parse(response.body)
@@ -374,7 +362,7 @@ RSpec.describe Api::V1::Accounts::ContactsController, type: :controller do
       contact_id = contact.id
       contact.destroy
 
-      get "/api/v1/accounts/#{account.id}/pipelines/#{pipeline.id}/items", headers: headers
+      get "/api/v1/accounts/0/pipelines/#{pipeline.id}/items", headers: headers
       expect(response).to have_http_status(:ok)
 
       json_data = JSON.parse(response.body)

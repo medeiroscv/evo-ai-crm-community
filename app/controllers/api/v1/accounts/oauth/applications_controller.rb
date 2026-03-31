@@ -10,7 +10,7 @@ class Api::V1::Accounts::Oauth::ApplicationsController < Api::V1::Accounts::Base
   before_action :set_application, only: [:show, :update, :destroy, :regenerate_secret]
 
   def index
-    @applications = Current.account.oauth_applications.order(:created_at)
+    @applications = OauthApplication.all.order(:created_at)
     render json: @applications.map { |app| application_serializer(app) }
   end
 
@@ -19,7 +19,7 @@ class Api::V1::Accounts::Oauth::ApplicationsController < Api::V1::Accounts::Base
   end
 
   def create
-    @application = Current.account.oauth_applications.build(application_params)
+    @application = OauthApplication.all.build(application_params)
 
     if @application.save
       render json: application_serializer(@application), status: :created
@@ -50,7 +50,7 @@ class Api::V1::Accounts::Oauth::ApplicationsController < Api::V1::Accounts::Base
   private
 
   def set_application
-    @application = Current.account.oauth_applications.find_by!(uid: params[:id])
+    @application = OauthApplication.all.find_by!(uid: params[:id])
   end
 
   def application_params

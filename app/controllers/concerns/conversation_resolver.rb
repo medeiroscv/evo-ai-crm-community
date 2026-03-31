@@ -24,11 +24,11 @@ module ConversationResolver
   end
 
   def find_conversation_by_uuid(uuid)
-    Current.account.conversations.find_by(id: uuid) ||
-      Current.account.conversations.find_by(uuid: uuid)
+    Conversation.find_by(id: uuid) ||
+      Conversation.find_by(uuid: uuid)
   end
 
   def find_conversation_by_display_id(display_id)
-    Current.account.conversations.find_by(display_id: display_id)
+    Conversation.find_by(display_id: display_id)
   end
 end

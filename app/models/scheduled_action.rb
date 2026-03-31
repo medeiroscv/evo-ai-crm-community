@@ -51,7 +51,6 @@
 
 class ScheduledAction < ApplicationRecord
   # Associations
-  belongs_to :account
   belongs_to :contact, optional: true
   belongs_to :conversation, optional: true
   belongs_to :creator, class_name: 'User', foreign_key: :created_by
@@ -88,7 +87,6 @@ class ScheduledAction < ApplicationRecord
   ].freeze
 
   # Validations
-  validates :account_id, presence: true
   validates :action_type, presence: true, inclusion: { in: ACTION_TYPES }
   validates :status, presence: true, inclusion: { in: STATUSES }
   validates :scheduled_for, presence: true
@@ -100,7 +98,6 @@ class ScheduledAction < ApplicationRecord
   validate :at_least_one_target_present
 
   # Scopes
-  scope :for_account, ->(account_id) { where(account_id: account_id) }
   scope :for_deal, ->(deal_id) { where(deal_id: deal_id) }
   scope :for_contact, ->(contact_id) { where(contact_id: contact_id) }
   scope :for_conversation, ->(conversation_id) { where(conversation_id: conversation_id) }
@@ -187,7 +184,6 @@ class ScheduledAction < ApplicationRecord
     return if next_scheduled_time.nil?
 
     ScheduledAction.create!(
-      account_id: account_id,
       deal_id: deal_id,
       contact_id: contact_id,
       conversation_id: conversation_id,

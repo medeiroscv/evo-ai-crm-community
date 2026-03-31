@@ -22,14 +22,12 @@
 #  index_csat_survey_responses_on_message_id         (message_id) UNIQUE
 #
 class CsatSurveyResponse < ApplicationRecord
-  belongs_to :account
   belongs_to :conversation
   belongs_to :contact
   belongs_to :message
   belongs_to :assigned_agent, class_name: 'User', optional: true, inverse_of: :csat_survey_responses
 
   validates :rating, presence: true, inclusion: { in: [1, 2, 3, 4, 5] }
-  validates :account_id, presence: true
   validates :contact_id, presence: true
   validates :conversation_id, presence: true
 

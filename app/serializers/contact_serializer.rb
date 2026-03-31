@@ -40,7 +40,7 @@ module ContactSerializer
     # Conditionally include labels
     if include_labels
       result['labels'] = contact.labels.map do |tag|
-        label = contact.account.labels.find_by(title: tag.name)
+        label = Label.find_by(title: tag.name)
         { name: tag.name, color: label&.color || '#1f93ff' }
       end
     end

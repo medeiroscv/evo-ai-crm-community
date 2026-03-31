@@ -40,10 +40,8 @@ class AgentBots::ConversationFinder
   end
 
   def find_conversation_scoped(conversation_id)
-    return if @agent_bot.account_id.blank?
-
-    conversation = @agent_bot.account.conversations.find_by(id: conversation_id)
-    Rails.logger.info "[AgentBot HTTP] Account scoped find result: #{conversation.inspect}"
+    conversation = Conversation.find_by(id: conversation_id)
+    Rails.logger.info "[AgentBot HTTP] Scoped find result: #{conversation.inspect}"
     conversation
   end
 

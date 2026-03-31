@@ -60,10 +60,10 @@ class Crm::Hubspot::ProcessorService < Crm::BaseProcessorService
       Rails.logger.info("Created/Found HubSpot contact #{new_contact_id} for Evolution contact #{contact.id}")
     end
   rescue Crm::Hubspot::Api::BaseClient::ApiError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "HubSpot API error processing contact: #{e.message}"
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "Error processing contact in HubSpot: #{e.message}"
   end
 end

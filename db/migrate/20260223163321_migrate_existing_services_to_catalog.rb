@@ -10,7 +10,6 @@ class MigrateExistingServicesToCatalog < ActiveRecord::Migration[7.1]
 
   class Pipeline < ActiveRecord::Base
     self.table_name = 'pipelines'
-    belongs_to :account, class_name: 'Account'
     has_many :pipeline_items, class_name: 'MigrateExistingServicesToCatalog::PipelineItem', foreign_key: :pipeline_id
     has_many :pipeline_service_definitions, class_name: 'MigrateExistingServicesToCatalog::PipelineServiceDefinition', foreign_key: :pipeline_id
   end
@@ -50,8 +49,7 @@ class MigrateExistingServicesToCatalog < ActiveRecord::Migration[7.1]
           unless service_map[service_key]
             catalog_service = pipeline.pipeline_service_definitions.find_or_create_by!(
               name: service_name,
-              pipeline: pipeline,
-              account: pipeline.account
+              pipeline: pipeline
             ) do |sd|
               sd.default_value = service_value
               sd.currency = currency

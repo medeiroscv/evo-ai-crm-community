@@ -73,7 +73,7 @@ module Api::V2::Accounts::HeatmapHelper
       business_hours: false
     }
 
-    V2::ReportBuilder.new(Current.account, report_params.merge({
+    V2::ReportBuilder.new(nil, report_params.merge({
                                                                  since: since_timestamp(date),
                                                                  until: until_timestamp(date),
                                                                  timezone_offset: offset

@@ -10,7 +10,6 @@ class Twilio::IncomingMessageService
     set_conversation
     @message = @conversation.messages.build(
       content: message_body,
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       message_type: :incoming,
       sender: @contact,
@@ -64,7 +63,6 @@ class Twilio::IncomingMessageService
 
   def conversation_params
     {
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       contact_id: @contact.id,
       contact_inbox_id: @contact_inbox.id,
@@ -121,7 +119,6 @@ class Twilio::IncomingMessageService
     return if attachment_file.blank?
 
     @message.attachments.new(
-      account_id: @message.account_id,
       file_type: file_type(attachment_file.content_type),
       file: {
         io: attachment_file,

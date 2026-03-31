@@ -1,8 +1,7 @@
 class Conversations::FilterService < FilterService
   ATTRIBUTE_MODEL = 'conversation_attribute'.freeze
 
-  def initialize(params, user, account)
-    @account = account
+  def initialize(params, user, _account = nil)
     super(params, user)
   end
 
@@ -24,7 +23,7 @@ class Conversations::FilterService < FilterService
   end
 
   def base_relation
-    conversations = @account.conversations
+    conversations = Conversation
                             .joins(:contact)  # Filter out conversations without contacts
                             .joins(:inbox)    # JOIN inboxes for channel_type filtering
                             .preload(
@@ -40,8 +39,7 @@ class Conversations::FilterService < FilterService
 
     Conversations::PermissionFilterService.new(
       conversations,
-      @user,
-      @account
+      @user
     ).perform
   end
 

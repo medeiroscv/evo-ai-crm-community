@@ -143,7 +143,6 @@ class Whatsapp::IncomingMessageNotificameService
       (content_data[:contacts] || []).each do |contact|
         incoming = conversation.messages.new(
           content: message_content(contact),
-          account_id: inbox.account_id,
           inbox_id: inbox.id,
           message_type: :incoming,
           sender: contact_inbox.contact,
@@ -158,7 +157,6 @@ class Whatsapp::IncomingMessageNotificameService
 
     incoming = conversation.messages.new(
       content: content_data[:text],
-      account_id: inbox.account_id,
       inbox_id: inbox.id,
       message_type: :incoming,
       sender: contact_inbox.contact,
@@ -180,8 +178,8 @@ class Whatsapp::IncomingMessageNotificameService
         reply_msg = conversation.messages.where("external_source_ids ->> 'notificame_provider_id' = ?", cid).first
         reply_msg ||= conversation.messages.where("external_source_ids ->> 'notificame' = ?", cid).first
         reply_msg ||= conversation.messages.find_by(source_id: cid)
-        reply_msg ||= Message.where(account_id: inbox.account_id).where("external_source_ids ->> 'notificame_provider_id' = ?", cid).first
-        reply_msg ||= Message.find_by(account_id: inbox.account_id, source_id: cid)
+        reply_msg ||= Message.where("external_source_ids ->> 'notificame_provider_id' = ?", cid).first
+        reply_msg ||= Message.find_by(source_id: cid)
         break if reply_msg
       end
 
@@ -233,8 +231,8 @@ class Whatsapp::IncomingMessageNotificameService
         reply_msg = conversation.messages.where("external_source_ids ->> 'notificame_provider_id' = ?", cid).first
         reply_msg ||= conversation.messages.where("external_source_ids ->> 'notificame' = ?", cid).first
         reply_msg ||= conversation.messages.find_by(source_id: cid)
-        reply_msg ||= Message.where(account_id: inbox.account_id).where("external_source_ids ->> 'notificame_provider_id' = ?", cid).first
-        reply_msg ||= Message.find_by(account_id: inbox.account_id, source_id: cid)
+        reply_msg ||= Message.where("external_source_ids ->> 'notificame_provider_id' = ?", cid).first
+        reply_msg ||= Message.find_by(source_id: cid)
         break if reply_msg
       end
 
@@ -272,7 +270,6 @@ class Whatsapp::IncomingMessageNotificameService
 
     phones.each do |phone|
       message.attachments.new(
-        account_id: message.account_id,
         file_type: file_content_type('contacts'),
         fallback_title: phone[:phone].to_s,
         meta: { display_name: contact.dig(:name, :formatted_name) || contact[:displayName] || contact[:display_name] }
@@ -282,7 +279,6 @@ class Whatsapp::IncomingMessageNotificameService
 
   def conversation_params(contact_inbox)
     {
-      account_id: inbox.account_id,
       inbox_id: inbox.id,
       contact_id: contact_inbox.contact_id,
       contact_inbox_id: contact_inbox.id
@@ -308,7 +304,6 @@ class Whatsapp::IncomingMessageNotificameService
     end
 
     message.attachments.new(
-      account_id: message.account_id,
       file_type: file_content_type(file_type_key),
       file: { io: io, filename: File.basename(io.path), content_type: mime_type }
     )
@@ -324,7 +319,6 @@ class Whatsapp::IncomingMessageNotificameService
                       ''
                     end
     message.attachments.new(
-      account_id: message.account_id,
       file_type: :location,
       coordinates_lat: content[:latitude],
       coordinates_long: content[:longitude],

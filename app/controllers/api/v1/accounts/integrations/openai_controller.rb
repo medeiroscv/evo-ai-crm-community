@@ -2,7 +2,7 @@ class Api::V1::Accounts::Integrations::OpenaiController < Api::V1::Accounts::Bas
   def process_event
     # Use global configuration instead of hook settings
     processor = Integrations::Openai::GlobalProcessorService.new(
-      account: Current.account,
+      account: nil,
       event: permitted_event_params
     )
 

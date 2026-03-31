@@ -1,12 +1,11 @@
 class Imap::ImapMailbox
   include MailboxHelper
   include IncomingEmailValidityHelper
-  attr_accessor :channel, :account, :inbox, :conversation, :processed_mail
+  attr_accessor :channel, :inbox, :conversation, :processed_mail
 
   def process(mail, channel)
     @inbound_mail = mail
     @channel = channel
-    load_account
     load_inbox
     decorate_mail
 
@@ -32,16 +31,12 @@ class Imap::ImapMailbox
 
   private
 
-  def load_account
-    @account = @channel.account
-  end
-
   def load_inbox
     @inbox = @channel.inbox
   end
 
   def decorate_mail
-    @processed_mail = MailPresenter.new(@inbound_mail, @account)
+    @processed_mail = MailPresenter.new(@inbound_mail)
   end
 
   def find_conversation_by_in_reply_to
@@ -84,7 +79,6 @@ class Imap::ImapMailbox
   def find_or_create_conversation
     @conversation = find_conversation_by_in_reply_to || find_conversation_by_reference_ids || ::Conversation.create!(
       {
-        account_id: @account.id,
         inbox_id: @inbox.id,
         contact_id: @contact.id,
         contact_inbox_id: @contact_inbox.id,

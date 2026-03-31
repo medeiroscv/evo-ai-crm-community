@@ -3,7 +3,7 @@ module AvailabilityStatusable
 
   def online_presence?
     obj_id = is_a?(Contact) ? id : user_id
-    ::OnlineStatusTracker.get_presence(account_id, self.class.name, obj_id)
+    ::OnlineStatusTracker.get_presence(self.class.name, obj_id)
   end
 
   def availability_status
@@ -25,6 +25,6 @@ module AvailabilityStatusable
     return availability unless auto_offline
 
     # availability as a fallback in case the status is not present in redis
-    online_presence? ? (::OnlineStatusTracker.get_status(account_id, user_id) || availability) : 'offline'
+    online_presence? ? (::OnlineStatusTracker.get_status(user_id) || availability) : 'offline'
   end
 end

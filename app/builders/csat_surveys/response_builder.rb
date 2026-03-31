@@ -17,7 +17,7 @@ class CsatSurveys::ResponseBuilder
 
   def process_csat_response(conversation, rating, feedback_message)
     csat_survey_response = message.csat_survey_response || CsatSurveyResponse.new(
-      message_id: message.id, account_id: message.account_id, conversation_id: message.conversation_id,
+      message_id: message.id, conversation_id: message.conversation_id,
       contact_id: conversation.contact_id, assigned_agent: conversation.assignee
     )
     csat_survey_response.rating = rating

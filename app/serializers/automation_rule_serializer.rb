@@ -23,7 +23,6 @@ module AutomationRuleSerializer
       name: automation_rule.name,
       description: automation_rule.description,
       event_name: automation_rule.event_name,
-      account_id: automation_rule.account_id,
       conditions: automation_rule.conditions,
       actions: automation_rule.actions,
       active: automation_rule.active,

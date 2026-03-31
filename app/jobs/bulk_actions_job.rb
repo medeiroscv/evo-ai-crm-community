@@ -6,8 +6,7 @@ class BulkActionsJob < ApplicationJob
 
   MODEL_TYPE = ['Conversation', 'Contact'].freeze
 
-  def perform(account:, params:, user:)
-    @account = account
+  def perform(account: nil, params:, user:)
     Current.user = user
     @params = params
     @records = records_to_updated(params[:ids])
@@ -72,12 +71,7 @@ class BulkActionsJob < ApplicationJob
 
   def bulk_delete_contacts
     records.each do |contact|
-      # Check if contact is online before deleting
-      unless ::OnlineStatusTracker.get_presence(@account.id, 'Contact', contact.id)
-        contact.destroy!
-      else
-        Rails.logger.warn "Skipping deletion of online contact #{contact.id}"
-      end
+      contact.destroy!
     end
   end
 
@@ -86,9 +80,9 @@ class BulkActionsJob < ApplicationJob
     return unless MODEL_TYPE.include?(current_model)
 
     if current_model == 'Contact'
-      current_model.constantize&.where(account_id: @account.id, id: ids)
+      current_model.constantize&.where(id: ids)
     else
-      current_model.constantize&.where(account_id: @account.id, display_id: ids)
+      current_model.constantize&.where(display_id: ids)
     end
   end
 end

@@ -11,8 +11,8 @@ class PipelinePolicy < ApplicationPolicy
     end
 
     def resolve
-      # Return all pipelines accessible to the user in the current account
-      scope.where(account_id: @account.id)
+      # Return all pipelines accessible to the user
+      scope.all
     end
   end
 

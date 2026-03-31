@@ -45,7 +45,6 @@ class EvolutionHub
 
   def self.instance_metrics
     {
-      accounts_count: fetch_count(Account),
       users_count: fetch_count(User),
       inboxes_count: fetch_count(Inbox),
       conversations_count: fetch_count(Conversation),

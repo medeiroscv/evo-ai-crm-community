@@ -21,7 +21,7 @@ class Api::V1::Accounts::PipelinesController < Api::V1::Accounts::BaseController
   before_action :fetch_conversation_for_by_conversation, only: [:by_conversation]
 
   def index
-    @pipelines = Current.account.pipelines
+    @pipelines = Pipeline.all
                         .accessible_by(Current.user)
                         .active
                         .includes(
@@ -66,7 +66,7 @@ class Api::V1::Accounts::PipelinesController < Api::V1::Accounts::BaseController
     # Check if user can create pipelines at the account level
     authorize Pipeline, :create?
 
-    @pipeline = Current.account.pipelines.new(pipeline_params.merge(created_by: Current.user))
+    @pipeline = Pipeline.new(pipeline_params.merge(created_by: Current.user))
 
     ActiveRecord::Base.transaction do
       @pipeline.save!
@@ -157,7 +157,7 @@ class Api::V1::Accounts::PipelinesController < Api::V1::Accounts::BaseController
       }
     else
       # Stats for all pipelines
-      pipelines = Current.account.pipelines.includes(:pipeline_items, :pipeline_stages)
+      pipelines = Pipeline.includes(:pipeline_items, :pipeline_stages)
 
       @stats = {
         total_pipelines: pipelines.count,
@@ -214,7 +214,7 @@ class Api::V1::Accounts::PipelinesController < Api::V1::Accounts::BaseController
   private
 
   def fetch_pipeline
-    @pipeline = Current.account.pipelines
+    @pipeline = Pipeline.all
                           .includes(
                             :created_by,
                             pipeline_stages: [],
@@ -245,12 +245,12 @@ class Api::V1::Accounts::PipelinesController < Api::V1::Accounts::BaseController
   end
 
   def fetch_contact_for_by_contact
-    @contact = Current.account.contacts.find(params[:contact_id])
+    @contact = Contact.find(params[:contact_id])
   rescue ActiveRecord::RecordNotFound
     error_response(
       ApiErrorCodes::CONTACT_NOT_FOUND,
       "Contact with ID '#{params[:contact_id]}' not found",
-      details: { contact_id: params[:contact_id], account_id: Current.account.id },
+      details: { contact_id: params[:contact_id] },
       status: :not_found
     )
   end
@@ -259,18 +259,18 @@ class Api::V1::Accounts::PipelinesController < Api::V1::Accounts::BaseController
     conversation_id = params[:conversation_id]
 
     # Try to find by UUID first
-    @conversation = Current.account.conversations.find_by(id: conversation_id)
+    @conversation = Conversation.find_by(id: conversation_id)
 
     # If not found and it's a display_id (numeric), try finding by display_id
     if @conversation.nil? && conversation_id.to_s.match?(/\A\d+\z/)
-      @conversation = Current.account.conversations.find_by(display_id: conversation_id)
+      @conversation = Conversation.find_by(display_id: conversation_id)
     end
 
     unless @conversation
       error_response(
         ApiErrorCodes::RESOURCE_NOT_FOUND,
         "Conversation with ID '#{conversation_id}' not found",
-        details: { conversation_id: conversation_id, account_id: Current.account.id },
+        details: { conversation_id: conversation_id },
         status: :not_found
       )
     end
@@ -384,7 +384,7 @@ class Api::V1::Accounts::PipelinesController < Api::V1::Accounts::BaseController
                                 .pluck(:pipeline_id)
 
     # Carregar pipelines com eager loading otimizado incluindo stages e items
-    pipelines = Current.account.pipelines
+    pipelines = Pipeline.all
                          .where(id: pipeline_ids_with_items)
                          .includes(
                            pipeline_stages: [],

@@ -89,15 +89,15 @@ class Api::V1::Accounts::Integrations::HubspotController < Api::V1::Accounts::Ba
   private
 
   def conversation_link
-    "#{ENV.fetch('FRONTEND_URL', nil)}/app/accounts/#{Current.account.id}/conversations/#{@conversation.display_id}"
+    "#{ENV.fetch('FRONTEND_URL', nil)}/app/conversations/#{@conversation.display_id}"
   end
 
   def fetch_conversation
-    @conversation = Current.account.conversations.find_by!(display_id: permitted_params[:conversation_id])
+    @conversation = Conversation.find_by!(display_id: permitted_params[:conversation_id])
   end
 
   def hubspot_processor_service
-    Integrations::Hubspot::ProcessorService.new(account: Current.account)
+    Integrations::Hubspot::ProcessorService.new(account: nil)
   end
 
   def permitted_params
@@ -105,6 +105,6 @@ class Api::V1::Accounts::Integrations::HubspotController < Api::V1::Accounts::Ba
   end
 
   def fetch_hook
-    @hook = Integrations::Hook.where(account: Current.account).find_by(app_id: 'hubspot')
+    @hook = Integrations::Hook.find_by(app_id: 'hubspot')
   end
 end

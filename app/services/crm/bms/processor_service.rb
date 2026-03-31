@@ -127,10 +127,10 @@ class Crm::Bms::ProcessorService < Crm::BaseProcessorService
       Rails.logger.info("Created/Found BMS contact #{new_contact_id} for Evolution contact #{contact.id}")
     end
   rescue Crm::Bms::Api::BaseClient::ApiError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "BMS API error processing contact: #{e.message}"
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "Error processing contact in BMS: #{e.message}"
   end
 
@@ -158,10 +158,10 @@ class Crm::Bms::ProcessorService < Crm::BaseProcessorService
       @contact_client.update_contact(contact_data)
     end
   rescue Crm::Bms::Api::BaseClient::ApiError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "BMS API error syncing contact labels: #{e.message}"
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "Error syncing contact labels to BMS: #{e.message}"
   end
 
@@ -208,10 +208,10 @@ class Crm::Bms::ProcessorService < Crm::BaseProcessorService
     end
 
   rescue Crm::Bms::Api::BaseClient::ApiError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "BMS API error syncing contact label changes: #{e.message}"
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "Error syncing contact label changes to BMS: #{e.message}"
   end
 
@@ -220,10 +220,10 @@ class Crm::Bms::ProcessorService < Crm::BaseProcessorService
     # Pass event_data to try to use changed_attributes from EventDispatcherJob
     sync_contact_labels_with_removal_detection(contact, event_data)
   rescue Crm::Bms::Api::BaseClient::ApiError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "BMS API error syncing contact label changes: #{e.message}"
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "Error syncing contact label changes to BMS: #{e.message}"
   end
 
@@ -231,7 +231,7 @@ class Crm::Bms::ProcessorService < Crm::BaseProcessorService
     return unless contact.custom_attributes.present? && contact.custom_attributes.any?
 
     # Get account custom attribute definitions for contact attributes only
-    custom_attribute_definitions = @account.custom_attribute_definitions.contact_attribute
+    custom_attribute_definitions = CustomAttributeDefinition.contact_attribute
 
     # For each custom attribute that the contact has a value for,
     # ensure the corresponding field definition exists in BMS
@@ -249,10 +249,10 @@ class Crm::Bms::ProcessorService < Crm::BaseProcessorService
 
     Rails.logger.info("BMS: Synced custom attributes for contact #{contact.id}: #{contact.custom_attributes.keys.join(', ')}")
   rescue Crm::Bms::Api::BaseClient::ApiError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "BMS API error syncing contact custom attributes: #{e.message}"
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "Error syncing contact custom attributes to BMS: #{e.message}"
   end
 
@@ -271,10 +271,10 @@ class Crm::Bms::ProcessorService < Crm::BaseProcessorService
       Rails.logger.info("Created BMS tag #{new_tag_id} for Evolution label #{label.id}")
     end
   rescue Crm::Bms::Api::BaseClient::ApiError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "BMS API error syncing label: #{e.message}"
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "Error syncing label to BMS: #{e.message}"
   end
 
@@ -293,10 +293,10 @@ class Crm::Bms::ProcessorService < Crm::BaseProcessorService
       Rails.logger.info("Created BMS custom field #{new_field_id} for Evolution custom attribute #{custom_attribute_definition.id}")
     end
   rescue Crm::Bms::Api::BaseClient::ApiError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "BMS API error syncing custom field: #{e.message}"
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: @account).capture_exception
+    EvolutionExceptionTracker.new(e).capture_exception
     Rails.logger.error "Error syncing custom field to BMS: #{e.message}"
   end
 
@@ -317,23 +317,23 @@ class Crm::Bms::ProcessorService < Crm::BaseProcessorService
   def get_label_external_id(label)
     # For now, store label mapping in a simple in-memory cache or use the label title as identifier
     # This can be improved when additional_attributes column is added to labels table
-    Rails.cache.read("bms_label_mapping_#{@account.id}_#{label.id}")
+    Rails.cache.read("bms_label_mapping_#{label.id}")
   end
 
   def store_label_external_id(label, external_id)
     # Store in cache for now - can be moved to DB additional_attributes later
-    Rails.cache.write("bms_label_mapping_#{@account.id}_#{label.id}", external_id, expires_in: 30.days)
+    Rails.cache.write("bms_label_mapping_#{label.id}", external_id, expires_in: 30.days)
     Rails.logger.info("BMS: Stored label mapping #{label.id} -> #{external_id}")
   end
 
   def get_custom_attribute_external_id(custom_attribute_definition)
     # Store custom field mapping in cache for now
-    Rails.cache.read("bms_custom_field_mapping_#{@account.id}_#{custom_attribute_definition.id}")
+    Rails.cache.read("bms_custom_field_mapping_#{custom_attribute_definition.id}")
   end
 
   def store_custom_attribute_external_id(custom_attribute_definition, external_id)
     # Store in cache for now - can be moved to DB additional_attributes later
-    Rails.cache.write("bms_custom_field_mapping_#{@account.id}_#{custom_attribute_definition.id}", external_id, expires_in: 30.days)
+    Rails.cache.write("bms_custom_field_mapping_#{custom_attribute_definition.id}", external_id, expires_in: 30.days)
     Rails.logger.info("BMS: Stored custom field mapping #{custom_attribute_definition.id} -> #{external_id}")
   end
 end

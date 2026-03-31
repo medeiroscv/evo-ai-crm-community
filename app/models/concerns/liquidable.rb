@@ -12,8 +12,7 @@ module Liquidable
       'contact' => ContactDrop.new(conversation.contact),
       'agent' => UserDrop.new(sender),
       'conversation' => ConversationDrop.new(conversation),
-      'inbox' => InboxDrop.new(inbox),
-      'account' => AccountDrop.new(conversation.account)
+      'inbox' => InboxDrop.new(inbox)
     }
   end
 

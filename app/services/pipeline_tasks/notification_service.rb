@@ -2,7 +2,6 @@ class PipelineTasks::NotificationService
   def initialize(task:, notification_type:)
     @task = task
     @notification_type = notification_type.to_s
-    @account = task.account
   end
 
   def perform
@@ -26,7 +25,6 @@ class PipelineTasks::NotificationService
 
   def create_notification
     Notification.create!(
-      account: @account,
       user: @task.assigned_to,
       notification_type: @notification_type,
       primary_actor: @task,

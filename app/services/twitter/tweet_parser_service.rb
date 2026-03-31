@@ -49,7 +49,6 @@ class Twitter::TweetParserService < Twitter::WebhooksBaseService
 
   def conversation_params
     {
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       contact_id: @contact.id,
       contact_inbox_id: @contact_inbox.id,
@@ -82,7 +81,6 @@ class Twitter::TweetParserService < Twitter::WebhooksBaseService
     find_or_create_contact(user)
     set_conversation
     @conversation.messages.create!(
-      account_id: @inbox.account_id,
       sender: @contact,
       content: tweet_text,
       inbox_id: @inbox.id,

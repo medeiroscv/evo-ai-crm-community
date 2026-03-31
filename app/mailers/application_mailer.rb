@@ -2,7 +2,6 @@ class ApplicationMailer < ActionMailer::Base
   include ActionView::Helpers::SanitizeHelper
 
   default from: proc { ApplicationMailer.get_mailer_sender_email }
-  before_action { ensure_current_account(params.try(:[], :account)) }
   around_action :switch_locale
   layout 'mailer/base'
   # Fetch template from Database if available
@@ -49,7 +48,6 @@ class ApplicationMailer < ActionMailer::Base
     # Merge additional objects into this in your mailer
     # liquid template handler converts these objects into drop objects
     {
-      account: Current.account,
       user: @agent,
       conversation: @conversation,
       inbox: @conversation&.inbox
@@ -68,12 +66,6 @@ class ApplicationMailer < ActionMailer::Base
     locals
   end
 
-  def locale_from_account(account)
-    return unless account
-
-    I18n.available_locales.map(&:to_s).include?(account.locale) ? account.locale : nil
-  end
-
   def self.get_mailer_sender_email
     begin
       # Try GlobalConfig first, then fallback to ENV
@@ -85,14 +77,8 @@ class ApplicationMailer < ActionMailer::Base
     end
   end
 
-  def ensure_current_account(account)
-    Current.reset
-    Current.account = account if account.present?
-  end
-
   def switch_locale(&)
-    locale ||= locale_from_account(Current.account)
-    locale ||= I18n.default_locale
+    locale = I18n.default_locale
     # ensure locale won't bleed into other requests
     # https://guides.rubyonrails.org/i18n.html#managing-the-locale-across-requests
     I18n.with_locale(locale, &)

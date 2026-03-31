@@ -12,7 +12,6 @@ module TeamMemberSerializer
       name: user.name,
       display_name: user.display_name,
       email: user.email,
-      account_id: user.account_id,
       role: user.role,
       confirmed: user.confirmed?,
       available_name: user.available_name,

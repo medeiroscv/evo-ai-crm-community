@@ -20,7 +20,7 @@ class Messages::Facebook::CommentBuilder
     Rails.logger.error e
     @inbox.channel.authorization_error!
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: @inbox.account).capture_exception
+    EvolutionExceptionTracker.new(e, account: nil).capture_exception
     true
   end
 
@@ -122,7 +122,6 @@ class Messages::Facebook::CommentBuilder
     Rails.logger.info("CommentBuilder: message_params - in_reply_to_external_id: #{reply_external_id.inspect}")
 
     {
-      account_id: conversation.account_id,
       inbox_id: conversation.inbox_id,
       message_type: :incoming,
       content: message_content,
@@ -153,7 +152,6 @@ class Messages::Facebook::CommentBuilder
   def contact_params
     {
       name: parser.from_name || "Facebook User #{parser.from_id[0..10]}",
-      account_id: inbox.account_id,
       additional_attributes: {
         facebook_user_id: parser.from_id
       }

@@ -8,7 +8,6 @@ module CsatSurveyResponseSerializer
 
     data = {
       id: response.id,
-      account_id: response.account_id,
       conversation_id: response.conversation_id,
       message_id: response.message_id,
       contact_id: response.contact_id,

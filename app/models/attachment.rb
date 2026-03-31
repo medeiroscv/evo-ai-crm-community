@@ -34,7 +34,6 @@ class Attachment < ApplicationRecord
     application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
     application/vnd.openxmlformats-officedocument.wordprocessingml.document
   ].freeze
-  belongs_to :account
   belongs_to :attachable, polymorphic: true
   has_one_attached :file
   validate :acceptable_file
@@ -144,7 +143,6 @@ class Attachment < ApplicationRecord
       id: id,
       message_id: message_id,
       file_type: file_type,
-      account_id: account_id,
       meta: meta || {}
     }
   end

@@ -16,7 +16,6 @@ module ScheduledActions
 
     def initialize(scheduled_action)
       @scheduled_action = scheduled_action
-      @account = scheduled_action.account
       @notifier = scheduled_action.notifier || scheduled_action.creator
     end
 
@@ -51,7 +50,6 @@ module ScheduledActions
 
     def create_notification(notification_type:, message:)
       notification = @scheduled_action.notifications.create!(
-        account_id: @account.id,
         user_id: @notifier.id,
         notification_type: notification_type,
         message: message,

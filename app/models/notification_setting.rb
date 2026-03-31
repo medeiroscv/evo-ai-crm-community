@@ -18,7 +18,6 @@ class NotificationSetting < ApplicationRecord
   # used for single column multi flags
   include FlagShihTzu
 
-  belongs_to :account
   belongs_to :user
 
   DEFAULT_QUERY_SETTING = {

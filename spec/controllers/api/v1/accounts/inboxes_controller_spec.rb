@@ -27,14 +27,12 @@ RSpec.describe Api::V1::Accounts::InboxesController, type: :controller do
   end
 
   describe '#set_agent_bot' do
-    let(:account) { instance_double(Account) }
     let(:agent_bot) { instance_double(AgentBot) }
     let(:agent_bot_inbox) { instance_double(AgentBotInbox) }
     let(:existing_agent_bot_inbox) { nil }
     let(:inbox) { instance_double(Inbox, agent_bot_inbox: existing_agent_bot_inbox) }
 
     before do
-      Current.account = account
       controller.instance_variable_set(:@agent_bot, agent_bot)
       controller.instance_variable_set(:@inbox, inbox)
       allow(controller).to receive(:params).and_return(ActionController::Parameters.new({}))
@@ -48,13 +46,9 @@ RSpec.describe Api::V1::Accounts::InboxesController, type: :controller do
       allow(agent_bot_inbox).to receive(:save!)
     end
 
-    after do
-      Current.reset
-    end
-
     context 'when inbox has no existing agent bot inbox' do
       it 'creates it and forces active status before save' do
-        expect(AgentBotInbox).to receive(:new).with(inbox: inbox, account: account).and_return(agent_bot_inbox)
+        expect(AgentBotInbox).to receive(:new).with(inbox: inbox).and_return(agent_bot_inbox)
         expect(agent_bot_inbox).to receive(:status=).with(:active)
         expect(agent_bot_inbox).to receive(:save!)
 

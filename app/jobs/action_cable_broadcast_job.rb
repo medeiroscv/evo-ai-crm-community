@@ -27,9 +27,8 @@ class ActionCableBroadcastJob < ApplicationJob
   def prepare_broadcast_data(event_name, data)
     return data unless CONVERSATION_UPDATE_EVENTS.include?(event_name)
 
-    account = Account.find(data[:account_id])
-    conversation = account.conversations.find_by!(id: data[:id])
-    conversation.push_event_data.merge(account_id: data[:account_id])
+    conversation = Conversation.find_by!(id: data[:id])
+    conversation.push_event_data
   end
 
   def broadcast_to_members(members, event_name, broadcast_data)

@@ -9,7 +9,6 @@ class Twitter::DirectMessageParserService < Twitter::WebhooksBaseService
     set_conversation
     @message = @conversation.messages.create!(
       content: message_create_data['message_data']['text'],
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       message_type: outgoing_message? ? :outgoing : :incoming,
       sender: @contact,
@@ -71,7 +70,6 @@ class Twitter::DirectMessageParserService < Twitter::WebhooksBaseService
 
   def conversation_params
     {
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       contact_id: @contact.id,
       contact_inbox_id: @contact_inbox.id,
@@ -114,7 +112,6 @@ class Twitter::DirectMessageParserService < Twitter::WebhooksBaseService
     return unless media['type'] == 'photo'
 
     @message.attachments.new(
-      account_id: @inbox.account_id,
       file_type: 'image',
       file: {
         io: temp_file,

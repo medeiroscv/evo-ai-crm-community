@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 class Public::Leads::CreationService
-  def initialize(account:, lead_params:)
-    @account = account
+  def initialize(account: nil, lead_params:)
     @lead_params = lead_params
     @errors = []
   end
@@ -59,9 +58,8 @@ class Public::Leads::CreationService
   end
 
   def validate_pipeline_and_stage!
-    # Validate pipeline belongs to account
-    @pipeline = @account.pipelines.find_by(id: deal_params[:pipeline_id])
-    raise StandardError, 'Pipeline not found or does not belong to this account' unless @pipeline
+    @pipeline = Pipeline.find_by(id: deal_params[:pipeline_id])
+    raise StandardError, 'Pipeline not found' unless @pipeline
 
     # Validate stage belongs to pipeline
     @pipeline_stage = @pipeline.pipeline_stages.find_by(id: deal_params[:stage_id])
@@ -70,7 +68,7 @@ class Public::Leads::CreationService
 
   def find_or_create_contact
     # Try to find existing contact by email
-    contact = @account.contacts.find_by(email: contact_params[:email])
+    contact = Contact.find_by(email: contact_params[:email])
 
     if contact
       # Update contact with new information if provided
@@ -117,7 +115,7 @@ class Public::Leads::CreationService
       # Add company to additional_attributes if provided
       contact_attributes[:additional_attributes]['company'] = contact_params[:company] if contact_params[:company].present?
 
-      contact = @account.contacts.create!(contact_attributes)
+      contact = Contact.create!(contact_attributes)
 
       Rails.logger.info "Public Leads API: Created new contact #{contact.id} - #{contact.email}"
     end
@@ -164,7 +162,7 @@ class Public::Leads::CreationService
     return if phone_number.blank?
 
     # Find if phone number exists in another contact
-    existing_contact = @account.contacts.find_by(phone_number: phone_number)
+    existing_contact = Contact.find_by(phone_number: phone_number)
 
     # If phone exists and belongs to a DIFFERENT contact, raise error
     if existing_contact && existing_contact != current_contact

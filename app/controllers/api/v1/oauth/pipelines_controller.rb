@@ -1,10 +1,7 @@
 # Herda diretamente do controller de accounts
 class Api::V1::Oauth::PipelinesController < Api::V1::Accounts::PipelinesController
   # Remove os middlewares do controller pai que dependem de account_id na URL
-  skip_before_action :current_account
   skip_before_action :authenticate_request!
-
-  # Remove os before_actions específicos do controller pai que dependem de Current.account
 
   require_permissions({
     index: 'oauth_pipelines.read',
@@ -20,7 +17,6 @@ class Api::V1::Oauth::PipelinesController < Api::V1::Accounts::PipelinesControll
   include Doorkeeper::Rails::Helpers
   include OauthAccountHelper
   before_action :ensure_oauth_authentication!
-  before_action :current_account
   before_action :fetch_pipeline, only: [:show, :update, :destroy, :archive, :stats]
 
   private
@@ -69,7 +65,7 @@ class Api::V1::Oauth::PipelinesController < Api::V1::Accounts::PipelinesControll
 
   # OAuth-aware version of parent controller methods
   def fetch_pipeline
-    @pipeline = Current.account.pipelines.find(params[:id])
+    @pipeline = Pipeline.all.find(params[:id])
   end
 
 end

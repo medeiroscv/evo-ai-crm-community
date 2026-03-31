@@ -17,20 +17,11 @@
 #  index_notes_on_user_id     (user_id)
 #
 class Note < ApplicationRecord
-  before_validation :ensure_account_id
   validates :content, presence: true
-  validates :account_id, presence: true
   validates :contact_id, presence: true
 
-  belongs_to :account
   belongs_to :contact
   belongs_to :user, optional: true
 
   scope :latest, -> { order(created_at: :desc) }
-
-  private
-
-  def ensure_account_id
-    self.account_id = contact&.account_id
-  end
 end

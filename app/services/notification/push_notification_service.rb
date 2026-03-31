@@ -28,7 +28,7 @@ class Notification::PushNotificationService
   delegate :notification_settings, to: :user
 
   def user_subscribed_to_notification?
-    notification_setting = notification_settings.find_by(account_id: notification.account.id)
+    notification_setting = notification_settings.first
     return true if notification_setting.public_send("push_#{notification.notification_type}?")
 
     false
@@ -47,7 +47,7 @@ class Notification::PushNotificationService
   end
 
   def push_url
-    app_account_conversation_url(account_id: conversation.account_id, id: conversation.display_id)
+    app_account_conversation_url(account_id: Account.first&.id, id: conversation.display_id)
   end
 
   def can_send_browser_push?(subscription)
@@ -82,7 +82,7 @@ class Notification::PushNotificationService
   rescue Errno::ECONNRESET, Net::OpenTimeout, Net::ReadTimeout => e
     Rails.logger.error "WebPush operation error: #{e.message}"
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: notification.account).capture_exception
+    EvolutionExceptionTracker.new(e, account: nil).capture_exception
     true
   end
 
@@ -109,7 +109,7 @@ class Notification::PushNotificationService
     rescue StandardError => e
       Rails.logger.error("❌ [FCM] Error sending push to #{user.email}: #{e.class} - #{e.message}")
       Rails.logger.error("❌ [FCM] Backtrace: #{e.backtrace.first(5).join("\n")}")
-      EvolutionExceptionTracker.new(e, account: notification.account).capture_exception
+      EvolutionExceptionTracker.new(e, account: nil).capture_exception
     end
   end
 

@@ -3,14 +3,12 @@
 require 'rails_helper'
 
 RSpec.describe Pipeline, type: :model do
-  let(:account) { Account.create!(name: 'Test Account') }
   let(:admin_user) { User.create!(email: 'admin@example.com', name: 'Admin User') }
   let(:account_owner) { User.create!(email: 'owner@example.com', name: 'Account Owner') }
 
   describe '.accessible_by' do
     let!(:default_private_pipeline) do
       described_class.create!(
-        account: account,
         name: 'Default Pipeline',
         pipeline_type: 'sales',
         visibility: :private,
@@ -21,7 +19,6 @@ RSpec.describe Pipeline, type: :model do
 
     let!(:private_pipeline) do
       described_class.create!(
-        account: account,
         name: 'Admin Private Pipeline',
         pipeline_type: 'custom',
         visibility: :private,
@@ -32,7 +29,6 @@ RSpec.describe Pipeline, type: :model do
 
     let!(:public_pipeline) do
       described_class.create!(
-        account: account,
         name: 'Public Pipeline',
         pipeline_type: 'support',
         visibility: :public,
@@ -43,7 +39,6 @@ RSpec.describe Pipeline, type: :model do
 
     let!(:owner_pipeline) do
       described_class.create!(
-        account: account,
         name: 'Owner Pipeline',
         pipeline_type: 'custom',
         visibility: :private,
@@ -53,7 +48,7 @@ RSpec.describe Pipeline, type: :model do
     end
 
     context 'when queried by account owner (non-creator of default pipeline)' do
-      subject(:accessible) { account.pipelines.accessible_by(account_owner) }
+      subject(:accessible) { Pipeline.accessible_by(account_owner) }
 
       it 'includes default pipelines created by another user (AC1)' do
         expect(accessible).to include(default_private_pipeline)
@@ -73,7 +68,7 @@ RSpec.describe Pipeline, type: :model do
     end
 
     context 'when queried by the creator (admin user)' do
-      subject(:accessible) { account.pipelines.accessible_by(admin_user) }
+      subject(:accessible) { Pipeline.accessible_by(admin_user) }
 
       it 'includes all own pipelines' do
         expect(accessible).to include(default_private_pipeline, private_pipeline, public_pipeline)

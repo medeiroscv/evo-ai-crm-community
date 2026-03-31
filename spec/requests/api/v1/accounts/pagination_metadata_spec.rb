@@ -3,20 +3,16 @@
 require 'rails_helper'
 
 RSpec.describe 'Pagination Metadata', type: :request do
-  let(:account) { Account.create!(name: 'Spec Account') }
   let(:user) { User.create!(email: 'test@example.com', name: 'Test User') }
   let(:service_token) { 'spec-service-token' }
   let(:headers) do
     {
-      'X-Service-Token' => service_token,
-      'account-id' => account.id.to_s
+      'X-Service-Token' => service_token
     }
   end
 
   before do
     ENV['EVOAI_CRM_API_TOKEN'] = service_token
-    AccountUser.create!(account: account, user: user)
-    Current.account = account
     Current.user = user
   end
 
@@ -31,7 +27,7 @@ RSpec.describe 'Pagination Metadata', type: :request do
 
   describe 'GET /api/v1/teams' do
     before do
-      25.times { |i| Team.create!(account: account, name: "Team #{i}") }
+      25.times { |i| Team.create!(name: "Team #{i}") }
     end
 
     context 'when using pageSize parameter (camelCase)' do
@@ -114,7 +110,7 @@ RSpec.describe 'Pagination Metadata', type: :request do
 
   describe 'GET /api/v1/labels' do
     before do
-      30.times { |i| Label.create!(account: account, title: "label_#{i}") }
+      30.times { |i| Label.create!(title: "label_#{i}") }
     end
 
     context 'when using pageSize parameter' do

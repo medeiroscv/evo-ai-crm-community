@@ -104,7 +104,6 @@ class AgentBots::DebounceService
     virtual_message = Message.new(
       content: combined_content,
       conversation: @conversation,
-      account: @conversation.account,
       inbox: @conversation.inbox,
       message_type: :incoming,
       created_at: Time.current
@@ -142,8 +141,8 @@ class AgentBots::DebounceService
       },
       conversation_id: @conversation.id,
       account: {
-        id: @conversation.account.id,
-        name: @conversation.account.name
+        id: Account.first&.id,
+        name: Account.first&.name
       },
       inbox: {
         id: @conversation.inbox.id,

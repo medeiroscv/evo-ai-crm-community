@@ -8,7 +8,7 @@ class Api::V1::Accounts::Integrations::ShopifyController < Api::V1::Accounts::Ba
     shop_domain = params[:shop_domain]
     return render json: { error: 'Shop domain is required' }, status: :unprocessable_entity if shop_domain.blank?
 
-    state = generate_shopify_token(Current.account.id)
+    state = generate_shopify_token('community')
 
     auth_url = "https://#{shop_domain}/admin/oauth/authorize?"
     auth_url += URI.encode_www_form(
@@ -45,11 +45,11 @@ class Api::V1::Accounts::Integrations::ShopifyController < Api::V1::Accounts::Ba
   end
 
   def contact
-    @contact ||= Current.account.contacts.find_by(id: params[:contact_id])
+    @contact ||= Contact.find_by(id: params[:contact_id])
   end
 
   def fetch_hook
-    @hook = Integrations::Hook.find_by!(account: Current.account, app_id: 'shopify')
+    @hook = Integrations::Hook.find_by!(app_id: 'shopify')
   end
 
   def fetch_customers

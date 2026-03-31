@@ -43,12 +43,10 @@ class FacebookCommentModeration < ApplicationRecord
 
   belongs_to :conversation
   belongs_to :message
-  belongs_to :account
   belongs_to :moderated_by, class_name: 'User', optional: true
 
   validates :conversation_id, presence: true
   validates :message_id, presence: true
-  validates :account_id, presence: true
   validates :comment_id, presence: true
   validates :moderation_type, presence: true, inclusion: { in: %w[explicit_words offensive_sentiment response_approval] }
   validates :status, presence: true, inclusion: { in: %w[pending approved rejected] }
@@ -114,7 +112,7 @@ class FacebookCommentModeration < ApplicationRecord
     self.moderated_at = Time.current
 
     if save
-      publish(:facebook_comment_moderation_approved, data: { moderation: self, account: account })
+      publish(:facebook_comment_moderation_approved, data: { moderation: self })
       execute_action!
       true
     else
@@ -132,7 +130,7 @@ class FacebookCommentModeration < ApplicationRecord
     self.rejection_reason = reason if reason.present?
 
     if save
-      publish(:facebook_comment_moderation_rejected, data: { moderation: self, account: account })
+      publish(:facebook_comment_moderation_rejected, data: { moderation: self })
 
       # When rejecting offensive/explicit moderations, delete the comment from Facebook
       # This allows moderators to quickly delete comments without approving

@@ -28,7 +28,6 @@ module Whatsapp::EvolutionHandlers::AttachmentProcessor
     log_attachment_info(attachment_file, final_filename, final_content_type)
 
     attachment = @message.attachments.build(
-      account_id: @message.account_id,
       file_type: file_content_type.to_s,
       file: {
         io: attachment_file,

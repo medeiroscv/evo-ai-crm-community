@@ -23,7 +23,6 @@ module PipelineSerializer
     result = {
       id: pipeline.id,
       name: pipeline.name,
-      account_id: pipeline.account_id,
       created_by_id: pipeline.created_by_id,
       description: pipeline.description,
       pipeline_type: pipeline.pipeline_type,

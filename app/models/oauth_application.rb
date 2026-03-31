@@ -24,15 +24,10 @@
 #  fk_rails_...  (account_id => accounts.id)
 #
 class OauthApplication < Doorkeeper::Application
-  belongs_to :account, optional: true
-
-  validates :account_id, presence: true, unless: :rfc7591_registered?
   validates :trusted, inclusion: { in: [true, false] }
 
-  scope :for_account, ->(account) { where(account: account) }
   scope :dynamic_apps, -> { where('name LIKE ?', 'Dynamic OAuth -%') }
   scope :static_apps, -> { where.not('name LIKE ?', 'Dynamic OAuth -%') }
-  scope :rfc7591_apps, -> { where(account_id: nil) }
 
   def display_secret
     if trusted?
@@ -50,21 +45,11 @@ class OauthApplication < Doorkeeper::Application
     !dynamic_oauth_app?
   end
 
-  def self.find_or_create_dynamic_for_account(account_id, user, redirect_uri = nil)
+  def self.find_or_create_dynamic(user, redirect_uri = nil)
     DynamicOauthService.create_or_find_dynamic_application(
-      DynamicOauthService.generate_dynamic_client_id(account_id),
+      DynamicOauthService.generate_dynamic_client_id,
       user,
       redirect_uri
     )
-  end
-
-  # Verifica se a aplicação foi registrada via RFC 7591 (sem account vinculada)
-  def rfc7591_registered?
-    account_id.nil?
-  end
-
-  # Verifica se precisa de seleção de account durante autorização
-  def requires_account_selection?
-    rfc7591_registered?
   end
 end

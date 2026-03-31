@@ -29,7 +29,7 @@ class Google::CallbacksController < OauthCallbackController
       Rails.logger.info "[GMAIL_PUSH] Push enabled automatically for #{channel_email.email}"
     rescue StandardError => e
       Rails.logger.error "[GMAIL_PUSH] Failed to enable push for #{channel_email.email}: #{e.message}"
-      EvolutionExceptionTracker.new(e, account: channel_email.account).capture_exception
+      EvolutionExceptionTracker.new(e, account: nil).capture_exception
     end
   end
 

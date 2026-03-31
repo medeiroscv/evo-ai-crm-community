@@ -8,7 +8,7 @@ class Api::V1::Accounts::AiMcpServersController < Api::V1::Accounts::BaseControl
       limit: params[:limit] || 100
     }
 
-    Rails.logger.info "AI MCP Servers Index - Current Account: #{Current.account&.id}, User: #{Current.user&.id}, Params: #{params_hash}"
+    Rails.logger.info "AI MCP Servers Index - User: #{Current.user&.id}, Params: #{params_hash}"
     
     response = EvoAiCoreService.list_mcp_servers(params_hash, request.headers)
 

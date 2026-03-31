@@ -121,7 +121,6 @@ class Api::V1::Accounts::EvolutionGo::ProfileController < Api::V1::Accounts::Bas
     whatsapp_channel = Channel::Whatsapp.joins(:inbox)
                                         .where(provider: 'evolution_go')
                                         .where('provider_config @> ?', { instance_uuid: @instance_uuid }.to_json)
-                                        .where(inboxes: { account_id: Current.account.id })
                                         .first
 
     if whatsapp_channel

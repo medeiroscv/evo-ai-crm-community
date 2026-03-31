@@ -52,18 +52,15 @@ class Contact < ApplicationRecord
 
   TYPES = %w[person company].freeze
 
-  validates :account_id, presence: true
   validates :type, presence: true, inclusion: { in: TYPES }
-  validates :email, allow_blank: true, uniqueness: { scope: [:account_id], case_sensitive: false },
+  validates :email, allow_blank: true, uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP, message: I18n.t('errors.contacts.email.invalid') }
-  validates :identifier, allow_blank: true, uniqueness: { scope: [:account_id] }
+  validates :identifier, allow_blank: true, uniqueness: true
   validates :phone_number,
-            allow_blank: true, uniqueness: { scope: [:account_id] },
+            allow_blank: true, uniqueness: true,
             format: { with: /\+[1-9]\d{1,14}\z/, message: I18n.t('errors.contacts.phone_number.invalid') }
-  validates :tax_id, allow_blank: true, uniqueness: { scope: [:account_id] }, length: { maximum: 14 }
+  validates :tax_id, allow_blank: true, uniqueness: true, length: { maximum: 14 }
   validates :website, allow_blank: true, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: 'must be a valid URL' }
-
-  belongs_to :account
   has_many :conversations, dependent: :destroy_async
   has_many :contact_inboxes, dependent: :destroy_async
   has_many :csat_survey_responses, dependent: :destroy_async
@@ -188,7 +185,6 @@ class Contact < ApplicationRecord
 
   def webhook_data
     {
-      account: account.webhook_data,
       additional_attributes: additional_attributes,
       avatar: avatar_url,
       custom_attributes: custom_attributes,
@@ -231,8 +227,6 @@ class Contact < ApplicationRecord
   private
 
   def ip_lookup
-    return unless account.feature_enabled?('ip_lookup')
-
     ContactIpLookupJob.perform_later(self)
   end
 
@@ -353,8 +347,7 @@ class Contact < ApplicationRecord
     companies << company
     publish(:contact_company_linked, data: {
       contact: self,
-      company: company,
-      account: account
+      company: company
     })
     true
   rescue ActiveRecord::RecordInvalid
@@ -367,8 +360,7 @@ class Contact < ApplicationRecord
     companies.delete(company)
     publish(:contact_company_unlinked, data: {
       contact: self,
-      company: company,
-      account: account
+      company: company
     })
     true
   end
@@ -390,7 +382,7 @@ class Contact < ApplicationRecord
   def assign_to_default_pipeline
     return if skip_default_pipeline_assignment
 
-    default_pipeline = account.pipelines.default.first
+    default_pipeline = Pipeline.default.first
     return unless default_pipeline
 
     return if default_pipeline.pipeline_items.exists?(contact: self)

@@ -52,17 +52,14 @@ class WidgetsController < ActionController::Base
   end
 
   def ensure_account_is_active
-    render json: { error: 'Account is suspended' }, status: :unauthorized unless @web_widget.inbox.account.active?
+    # Single-tenant: always considered active
   end
 
   def ensure_location_is_supported; end
 
   def additional_attributes
-    if @web_widget.inbox.account.feature_enabled?('ip_lookup')
-      { created_at_ip: request.remote_ip }
-    else
-      {}
-    end
+    # Single-tenant: ip_lookup is always available
+    { created_at_ip: request.remote_ip }
   end
 
   def permitted_params

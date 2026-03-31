@@ -62,7 +62,6 @@ class AgentBots::MessageCreator
 
   def create_direct_message(content, conversation)
     message_attributes = {
-      account: conversation.account,
       inbox: conversation.inbox,
       conversation: conversation,
       content: content,

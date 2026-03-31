@@ -6,20 +6,19 @@ class MessageTemplates::Template::OutOfOffice
       conversation.messages.create!(out_of_office_message_params)
     end
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: conversation.account).capture_exception
+    EvolutionExceptionTracker.new(e, account: nil).capture_exception
     true
   end
 
   private
 
-  delegate :contact, :account, to: :conversation
+  delegate :contact, to: :conversation
   delegate :inbox, to: :message
 
   def out_of_office_message_params
     content = @conversation.inbox&.out_of_office_message
 
     {
-      account_id: @conversation.account_id,
       inbox_id: @conversation.inbox_id,
       message_type: :template,
       content: content

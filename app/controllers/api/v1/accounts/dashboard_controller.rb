@@ -7,7 +7,6 @@ class Api::V1::Accounts::DashboardController < Api::V1::Accounts::BaseController
 
   def customer
     dashboard_data = Dashboard::CustomerDashboardService.new(
-      account: Current.account,
       params: dashboard_params
     ).call
 

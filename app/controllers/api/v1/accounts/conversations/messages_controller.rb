@@ -130,12 +130,11 @@ class Api::V1::Accounts::Conversations::MessagesController < Api::V1::Accounts::
   end
 
   def attach_canned_response_files
-    canned = @conversation.account.canned_responses.find_by(id: params[:canned_response_id])
+    canned = CannedResponse.find_by(id: params[:canned_response_id])
     return unless canned
 
     canned.attachments.find_each do |att|
       new_att = @message.attachments.build(
-        account_id: att.account_id,
         file_type: att.file_type,
         extension: att.extension,
         fallback_title: att.fallback_title,

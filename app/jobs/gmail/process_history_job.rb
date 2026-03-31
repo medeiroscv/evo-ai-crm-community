@@ -59,7 +59,7 @@ class Gmail::ProcessHistoryJob < ApplicationJob
   rescue StandardError => e
     Rails.logger.error "[GMAIL_PUSH] Error processing history: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
-    EvolutionExceptionTracker.new(e, account: channel.account).capture_exception
+    EvolutionExceptionTracker.new(e, account: nil).capture_exception
   end
 
   private
@@ -221,7 +221,7 @@ class Gmail::ProcessHistoryJob < ApplicationJob
   rescue StandardError => e
     Rails.logger.error "[GMAIL_PUSH] Failed to process message #{message_id}: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
-    EvolutionExceptionTracker.new(e, account: channel.account).capture_exception
+    EvolutionExceptionTracker.new(e, account: nil).capture_exception
     # Don't re-raise - continue processing other messages
   end
 

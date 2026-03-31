@@ -9,7 +9,6 @@ module WorkingHourSerializer
     {
       id: working_hour.id,
       inbox_id: working_hour.inbox_id,
-      account_id: working_hour.account_id,
       day_of_week: working_hour.day_of_week,
       open_hour: working_hour.open_hour,
       open_minutes: working_hour.open_minutes,

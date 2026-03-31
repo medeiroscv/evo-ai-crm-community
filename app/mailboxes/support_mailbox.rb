@@ -1,9 +1,8 @@
 class SupportMailbox < ApplicationMailbox
   include IncomingEmailValidityHelper
-  attr_accessor :channel, :account, :inbox, :conversation, :processed_mail
+  attr_accessor :channel, :inbox, :conversation, :processed_mail
 
   before_processing :find_channel,
-                    :load_account,
                     :load_inbox,
                     :decorate_mail
 
@@ -35,22 +34,18 @@ class SupportMailbox < ApplicationMailbox
     @channel = EmailChannelFinder.new(mail).perform
   end
 
-  def load_account
-    @account = @channel.account
-  end
-
   def load_inbox
     @inbox = @channel.inbox
   end
 
   def decorate_mail
-    @processed_mail = MailPresenter.new(mail, @account)
+    @processed_mail = MailPresenter.new(mail)
   end
 
   def find_conversation_by_in_reply_to
     return if in_reply_to.blank?
 
-    @account.conversations.where("additional_attributes->>'in_reply_to' = ?", in_reply_to).first
+    Conversation.where("additional_attributes->>'in_reply_to' = ?", in_reply_to).first
   end
 
   def in_reply_to
@@ -63,7 +58,6 @@ class SupportMailbox < ApplicationMailbox
 
   def find_or_create_conversation
     @conversation = find_conversation_by_in_reply_to || ::Conversation.create!({
-                                                                                 account_id: @account.id,
                                                                                  inbox_id: @inbox.id,
                                                                                  contact_id: @contact.id,
                                                                                  contact_inbox_id: @contact_inbox.id,

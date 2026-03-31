@@ -51,7 +51,7 @@ class ContactCompanyListener < BaseListener
   private
 
   def broadcast_contact_company_event(account, contact, company, event_type)
-    tokens = user_tokens(account, account.agents)
+    tokens = all_user_tokens
 
     payload = {
       contact: contact_data(contact),
@@ -63,7 +63,7 @@ class ContactCompanyListener < BaseListener
   end
 
   def broadcast_bulk_transfer_event(account, contacts, from_company, to_company)
-    tokens = user_tokens(account, account.agents)
+    tokens = all_user_tokens
 
     payload = {
       contacts: contacts.map { |c| { id: c.id, name: c.name } },
@@ -85,17 +85,14 @@ class ContactCompanyListener < BaseListener
     }
   end
 
-  def user_tokens(account, users)
-    agent_tokens = users.pluck(:pubsub_token)
-    admin_tokens = account.administrators.pluck(:pubsub_token)
-    (agent_tokens + admin_tokens).uniq.compact
+  def all_user_tokens
+    User.pluck(:pubsub_token).compact.uniq
   end
 
   def broadcast(account, tokens, event_type, payload)
     return if tokens.blank?
 
-    payload_with_account = payload.merge(account_id: account.id)
-    ::ActionCableBroadcastJob.perform_later(tokens.uniq, event_type, payload_with_account)
+    ::ActionCableBroadcastJob.perform_later(tokens.uniq, event_type, payload)
   end
 end
 

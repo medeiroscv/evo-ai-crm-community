@@ -9,7 +9,6 @@ module IntegrationHookSerializer
     {
       id: hook.id,
       app_id: hook.app_id,
-      account_id: hook.account_id,
       inbox_id: hook.inbox_id,
       status: hook.status,
       settings: hook.settings || {},

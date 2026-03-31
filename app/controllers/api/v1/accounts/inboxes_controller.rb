@@ -32,7 +32,7 @@ module Api
         })
 
         def index
-          @inboxes = Current.account.inboxes.order_by_name.includes(:channel, { avatar_attachment: [:blob] })
+          @inboxes = Inbox.order_by_name.includes(:channel, { avatar_attachment: [:blob] })
 
           apply_pagination
 
@@ -83,7 +83,7 @@ module Api
             else
               inbox_params[:display_name] = permitted_params[:display_name] || params[:inbox]&.dig(:display_name)
             end
-            @inbox = Current.account.inboxes.build(
+            @inbox = Inbox.new(
               {
                 name: inbox_name_value,
                 channel: channel
@@ -139,7 +139,7 @@ module Api
 
         def set_agent_bot
           if @agent_bot
-            agent_bot_inbox = @inbox.agent_bot_inbox || AgentBotInbox.new(inbox: @inbox, account: Current.account)
+            agent_bot_inbox = @inbox.agent_bot_inbox || AgentBotInbox.new(inbox: @inbox)
             agent_bot_inbox.agent_bot = @agent_bot
 
             # Update configuration fields if provided
@@ -571,7 +571,7 @@ module Api
         private
 
         def fetch_inbox
-          @inbox = Current.account.inboxes.find(params[:id])
+          @inbox = Inbox.find(params[:id])
           # Use destroy? permission for destroy action, show? for others
           permission = action_name == 'destroy' ? :destroy? : :show?
           authorize @inbox, permission

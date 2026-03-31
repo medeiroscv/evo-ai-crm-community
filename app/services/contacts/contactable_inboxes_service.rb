@@ -2,8 +2,7 @@ class Contacts::ContactableInboxesService
   pattr_initialize [:contact!]
 
   def get
-    account = contact.account
-    account.inboxes.filter_map { |inbox| get_contactable_inbox(inbox) }
+    Inbox.all.filter_map { |inbox| get_contactable_inbox(inbox) }
   end
 
   private

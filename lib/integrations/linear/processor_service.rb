@@ -1,5 +1,4 @@
 class Integrations::Linear::ProcessorService
-  pattr_initialize [:account!]
 
   def teams
     response = linear_client.teams
@@ -72,7 +71,7 @@ class Integrations::Linear::ProcessorService
   private
 
   def linear_hook
-    @linear_hook ||= account.hooks.find_by!(app_id: 'linear')
+    @linear_hook ||= Hook.find_by!(app_id: 'linear')
   end
 
   def linear_client

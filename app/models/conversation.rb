@@ -60,7 +60,6 @@ class Conversation < ApplicationRecord
   include ConversationMuteHelpers
   include Wisper::Publisher
 
-  validates :account_id, presence: true
   validates :inbox_id, presence: true
   validates :contact_id, presence: true
   before_validation :validate_additional_attributes
@@ -97,7 +96,6 @@ class Conversation < ApplicationRecord
     ).sort_on_last_user_message_at
   }
 
-  belongs_to :account
   belongs_to :inbox
   belongs_to :assignee, class_name: 'User', optional: true, inverse_of: :assigned_conversations
   belongs_to :contact
@@ -130,7 +128,9 @@ class Conversation < ApplicationRecord
   after_destroy_commit :publish_conversation_deleted
   after_destroy_commit :sync_session_delete
 
-  delegate :auto_resolve_after, to: :account
+  def auto_resolve_after
+    nil
+  end
 
   def can_reply?
     Conversations::MessageWindowService.new(self).can_reply?
@@ -176,7 +176,7 @@ class Conversation < ApplicationRecord
   end
 
   def unread_incoming_messages
-    unread_messages.where(account_id: account_id).incoming.last(10)
+    unread_messages.incoming.last(10)
   end
 
   def cached_label_list_array
@@ -226,11 +226,11 @@ class Conversation < ApplicationRecord
   private
 
   def ensure_display_id
-    return if account_id.blank? || display_id.present?
+    return if display_id.present?
 
-    # Use a simpler approach: get the next display_id for this account
+    # Use a globally sequential display_id
     # This is thread-safe because we're using a database transaction
-    max_display_id = self.class.where(account_id: account_id).maximum(:display_id) || 0
+    max_display_id = self.class.maximum(:display_id) || 0
     self.display_id = max_display_id + 1
   end
 
@@ -380,7 +380,7 @@ class Conversation < ApplicationRecord
   end
 
   def assign_to_default_pipeline
-    default_pipeline = account.pipelines.default.first
+    default_pipeline = Pipeline.default.first
     return unless default_pipeline
 
     # Verifica se já está no pipeline (prevenção de duplicatas)

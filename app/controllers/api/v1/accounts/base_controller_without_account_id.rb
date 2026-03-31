@@ -5,11 +5,9 @@
 # Este controller permite rotas como /api/v1/accounts/inboxes em vez de /api/v1/accounts/:account_id/inboxes
 class Api::V1::Accounts::BaseControllerWithoutAccountId < Api::BaseController
   include SwitchLocale
-  include EnsureCurrentAccountHelper
   include ApiResponseHelper
-  
-  before_action :current_account
-  around_action :switch_locale_using_account_locale
+
+  around_action :switch_locale_using_default
 
   private
 

@@ -2,10 +2,9 @@
 class Contacts::UnlinkCompanyService
   include Wisper::Publisher
 
-  def initialize(contact:, company:, account:)
+  def initialize(contact:, company:, account: nil)
     @contact = contact
     @company = company
-    @account = account
   end
 
   def perform
@@ -23,7 +22,7 @@ class Contacts::UnlinkCompanyService
 
   private
 
-  attr_reader :contact, :company, :account
+  attr_reader :contact, :company
 
   def validate_params!
     raise 'Not linked' unless contact.companies.include?(company)
@@ -32,16 +31,14 @@ class Contacts::UnlinkCompanyService
   def unlink_company
     ContactCompany.where(
       contact: contact,
-      company: company,
-      account: account
+      company: company
     ).destroy_all
   end
 
   def publish_events
     publish(:contact_company_unlinked, data: {
       contact: contact,
-      company: company,
-      account: account
+      company: company
     })
   end
 
@@ -53,4 +50,3 @@ class Contacts::UnlinkCompanyService
     { success: false, error: message }
   end
 end
-

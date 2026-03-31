@@ -3,30 +3,36 @@ class BaseListener
 
   def extract_conversation_and_account(event)
     conversation = event.data[:conversation]
-    [conversation, conversation.account]
+    [conversation, single_tenant_account]
   end
 
   def extract_notification_and_account(event)
     notification = event.data[:notification]
-    notification_finder = NotificationFinder.new(notification.user, notification.account)
+    notification_finder = NotificationFinder.new(notification.user)
     unread_count = notification_finder.unread_count
     count = notification_finder.count
-    [notification, notification.account, unread_count, count]
+    [notification, single_tenant_account, unread_count, count]
   end
 
   def extract_message_and_account(event)
     message = event.data[:message]
-    [message, message.account]
+    [message, single_tenant_account]
   end
 
   def extract_contact_and_account(event)
     contact = event.data[:contact]
-    [contact, contact.account]
+    [contact, single_tenant_account]
   end
 
   def extract_inbox_and_account(event)
     inbox = event.data[:inbox]
-    [inbox, inbox.account]
+    [inbox, single_tenant_account]
+  end
+
+  private
+
+  def single_tenant_account
+    @single_tenant_account ||= Account.first
   end
 
   def extract_changed_attributes(event)

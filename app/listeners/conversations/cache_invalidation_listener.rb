@@ -52,15 +52,15 @@ class Conversations::CacheInvalidationListener
     # Add all users with inbox access
     users.merge(conversation.inbox.inbox_members.includes(:user).map(&:user))
 
-    # Add all admins
-    users.merge(account.account_users.administrator.includes(:user).map(&:user))
+    # Add all admins (single-tenant: query User directly)
+    users.merge(User.where(type: 'SuperAdmin'))
 
     users.compact
   end
 
   def invalidate_conversation_list_cache(conversation, account)
     # Clear paginated conversation lists
-    pattern = "conversations:list:#{account.id}:*"
+    pattern = "conversations:list:*"
 
     Redis.current.scan_each(match: pattern) do |key|
       Rails.cache.delete(key)

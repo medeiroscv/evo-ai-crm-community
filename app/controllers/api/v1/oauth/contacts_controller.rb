@@ -9,7 +9,6 @@ class Api::V1::Oauth::ContactsController < Api::V1::Accounts::ContactsController
   })
 
   # Remove os middlewares do controller pai que dependem de account_id na URL
-  skip_before_action :current_account
   skip_before_action :authenticate_request!
   skip_before_action :fetch_contact
   skip_before_action :set_include_contact_inboxes
@@ -18,7 +17,6 @@ class Api::V1::Oauth::ContactsController < Api::V1::Accounts::ContactsController
   include Doorkeeper::Rails::Helpers
   include OauthAccountHelper
   before_action :ensure_oauth_authentication!
-  before_action :current_account
   before_action :fetch_contact, only: [:show, :update, :destroy, :avatar, :contactable_inboxes, :destroy_custom_attributes]
   before_action :set_include_contact_inboxes, only: [:index, :active, :search, :filter, :show, :update]
 
@@ -67,7 +65,7 @@ class Api::V1::Oauth::ContactsController < Api::V1::Accounts::ContactsController
   end
 
   def fetch_contact
-    @contact = Current.account.contacts.includes(contact_inboxes: [:inbox]).find(params[:id])
+    @contact = Contact.all.includes(contact_inboxes: [:inbox]).find(params[:id])
   end
 
   def set_include_contact_inboxes

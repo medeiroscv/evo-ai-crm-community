@@ -15,7 +15,7 @@ class Inboxes::ProcessEmailBatchJob < ApplicationJob
         processed_count += 1
       rescue StandardError => e
         failed_count += 1
-        EvolutionExceptionTracker.new(e, account: channel.account).capture_exception
+        EvolutionExceptionTracker.new(e, account: nil).capture_exception
         Rails.logger.error "Failed to process email: #{inbound_mail&.message_id} - #{e.message}"
       end
     end

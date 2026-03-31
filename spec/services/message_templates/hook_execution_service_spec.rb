@@ -3,11 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe MessageTemplates::HookExecutionService do
-  let(:account) { create(:account) }
-  let(:web_widget) { create(:channel_widget, account: account) }
-  let(:inbox) { create(:inbox, channel: web_widget, account: account) }
-  let(:contact_without_email) { create(:contact, account: account, email: nil) }
-  let(:contact_with_email) { create(:contact, account: account, email: 'test@example.com') }
+  let(:web_widget) { create(:channel_widget) }
+  let(:inbox) { create(:inbox, channel: web_widget) }
+  let(:contact_without_email) { create(:contact, email: nil) }
+  let(:contact_with_email) { create(:contact, email: 'test@example.com') }
   let(:contact_inbox) { create(:contact_inbox, contact: contact_without_email, inbox: inbox) }
 
   describe '#perform' do
@@ -19,14 +18,12 @@ RSpec.describe MessageTemplates::HookExecutionService do
 
       it 'sends email collect messages when contact has no email' do
         conversation = create(:conversation,
-                              account: account,
                               inbox: inbox,
                               contact: contact_without_email,
                               contact_inbox: contact_inbox)
 
         message = create(:message,
                          conversation: conversation,
-                         account: account,
                          inbox: inbox,
                          message_type: :incoming,
                          sender: contact_without_email)
@@ -41,14 +38,12 @@ RSpec.describe MessageTemplates::HookExecutionService do
       it 'does not send email collect when contact already has email' do
         ci = create(:contact_inbox, contact: contact_with_email, inbox: inbox)
         conversation = create(:conversation,
-                              account: account,
                               inbox: inbox,
                               contact: contact_with_email,
                               contact_inbox: ci)
 
         message = create(:message,
                          conversation: conversation,
-                         account: account,
                          inbox: inbox,
                          message_type: :incoming,
                          sender: contact_with_email)
@@ -62,14 +57,12 @@ RSpec.describe MessageTemplates::HookExecutionService do
 
       it 'sends email collect even when messages association cache is stale' do
         conversation = create(:conversation,
-                              account: account,
                               inbox: inbox,
                               contact: contact_without_email,
                               contact_inbox: contact_inbox)
 
         message = create(:message,
                          conversation: conversation,
-                         account: account,
                          inbox: inbox,
                          message_type: :incoming,
                          sender: contact_without_email)
@@ -85,21 +78,18 @@ RSpec.describe MessageTemplates::HookExecutionService do
 
       it 'does not send duplicate email collect when already sent' do
         conversation = create(:conversation,
-                              account: account,
                               inbox: inbox,
                               contact: contact_without_email,
                               contact_inbox: contact_inbox)
 
         create(:message,
                conversation: conversation,
-               account: account,
                inbox: inbox,
                message_type: :template,
                content_type: 'input_email')
 
         message = create(:message,
                          conversation: conversation,
-                         account: account,
                          inbox: inbox,
                          message_type: :incoming,
                          sender: contact_without_email)
@@ -119,14 +109,12 @@ RSpec.describe MessageTemplates::HookExecutionService do
 
       it 'does not send email collect messages' do
         conversation = create(:conversation,
-                              account: account,
                               inbox: inbox,
                               contact: contact_without_email,
                               contact_inbox: contact_inbox)
 
         message = create(:message,
                          conversation: conversation,
-                         account: account,
                          inbox: inbox,
                          message_type: :incoming,
                          sender: contact_without_email)
@@ -142,14 +130,12 @@ RSpec.describe MessageTemplates::HookExecutionService do
     context 'when conversation has no incoming messages' do
       it 'returns early without triggering templates' do
         conversation = create(:conversation,
-                              account: account,
                               inbox: inbox,
                               contact: contact_without_email,
                               contact_inbox: contact_inbox)
 
         message = create(:message,
                          conversation: conversation,
-                         account: account,
                          inbox: inbox,
                          message_type: :outgoing)
 

@@ -1,5 +1,5 @@
 class Integrations::Dyte::ProcessorService
-  pattr_initialize [:account!, :conversation!]
+  pattr_initialize [:conversation!]
 
   def create_a_meeting(agent)
     title = I18n.t('integration_apps.dyte.meeting_name', agent_name: agent.available_name)
@@ -21,7 +21,6 @@ class Integrations::Dyte::ProcessorService
   def create_a_dyte_integration_message(meeting, title, agent)
     @conversation.messages.create!(
       {
-        account_id: conversation.account_id,
         inbox_id: conversation.inbox_id,
         message_type: :outgoing,
         content_type: :integrations,
@@ -44,7 +43,7 @@ class Integrations::Dyte::ProcessorService
   end
 
   def dyte_hook
-    @dyte_hook ||= account.hooks.find_by!(app_id: 'dyte')
+    @dyte_hook ||= Hook.find_by!(app_id: 'dyte')
   end
 
   def dyte_client

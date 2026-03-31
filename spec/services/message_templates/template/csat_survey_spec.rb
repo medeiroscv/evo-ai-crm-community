@@ -3,11 +3,10 @@
 require 'rails_helper'
 
 RSpec.describe MessageTemplates::Template::CsatSurvey do
-  let(:account) { create(:account) }
-  let(:inbox) { create(:inbox, account: account) }
-  let(:contact) { create(:contact, account: account) }
+  let(:inbox) { create(:inbox) }
+  let(:contact) { create(:contact) }
   let(:contact_inbox) { create(:contact_inbox, contact: contact, inbox: inbox) }
-  let(:conversation) { create(:conversation, account: account, inbox: inbox, contact: contact, contact_inbox: contact_inbox) }
+  let(:conversation) { create(:conversation, inbox: inbox, contact: contact, contact_inbox: contact_inbox) }
   let(:service) { described_class.new(conversation: conversation) }
 
   describe '#should_send_csat_survey?' do
@@ -59,7 +58,7 @@ RSpec.describe MessageTemplates::Template::CsatSurvey do
       end
 
       context 'with stage trigger' do
-        let(:pipeline) { create(:pipeline, account: account) }
+        let(:pipeline) { create(:pipeline) }
         let(:stage1) { create(:pipeline_stage, pipeline: pipeline, name: 'Stage 1') }
         let(:stage2) { create(:pipeline_stage, pipeline: pipeline, name: 'Stage 2') }
         let!(:pipeline_item) { create(:pipeline_item, conversation: conversation, pipeline: pipeline, pipeline_stage: stage1) }
@@ -204,7 +203,7 @@ RSpec.describe MessageTemplates::Template::CsatSurvey do
       end
 
       context 'with regex trigger' do
-        let!(:message) { create(:message, conversation: conversation, content: 'Hello world', account: account, inbox: inbox) }
+        let!(:message) { create(:message, conversation: conversation, content: 'Hello world', inbox: inbox) }
 
         context 'when message content matches pattern' do
           before do

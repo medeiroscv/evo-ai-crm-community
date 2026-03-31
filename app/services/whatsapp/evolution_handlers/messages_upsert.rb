@@ -85,10 +85,9 @@ module Whatsapp::EvolutionHandlers::MessagesUpsert
   def build_message_attributes
     @message = @conversation.messages.build(
       content: message_content || '',
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       source_id: raw_message_id,
-      sender: incoming? ? @contact : @inbox.account.account_users.first.user,
+      sender: incoming? ? @contact : User.where(type: 'SuperAdmin').first || User.first,
       sender_type: incoming? ? 'Contact' : 'User',
       message_type: incoming? ? :incoming : :outgoing,
       content_attributes: message_content_attributes

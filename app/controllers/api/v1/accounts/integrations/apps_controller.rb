@@ -5,14 +5,14 @@ class Api::V1::Accounts::Integrations::AppsController < Api::V1::Accounts::BaseC
 
   def index
     success_response(
-      data: IntegrationAppSerializer.serialize_collection(@apps, account: Current.account),
+      data: IntegrationAppSerializer.serialize_collection(@apps, account: nil),
       message: 'Integration apps retrieved successfully'
     )
   end
 
   def show
     success_response(
-      data: IntegrationAppSerializer.serialize(@app, account: Current.account),
+      data: IntegrationAppSerializer.serialize(@app, account: nil),
       message: 'Integration app retrieved successfully'
     )
   end
@@ -20,7 +20,7 @@ class Api::V1::Accounts::Integrations::AppsController < Api::V1::Accounts::BaseC
   private
 
   def fetch_apps
-    @apps = Integrations::App.all.select { |app| app.active?(Current.account) }
+    @apps = Integrations::App.all.select { |app| app.active?(nil) }
   end
 
   def fetch_app

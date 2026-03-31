@@ -78,7 +78,6 @@ class Integrations::Facebook::CommentCreator
     # Create or find contact for the comment author
     contact_params = {
       name: parser.from_name || "Facebook User #{parser.from_id[0..10]}",
-      account_id: inbox.account_id,
       additional_attributes: {
         facebook_user_id: parser.from_id
       }

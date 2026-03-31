@@ -17,10 +17,6 @@ unless Rails.env.production?
   installation_config.save!
   GlobalConfig.clear_cache
 
-  account = Account.find_by!(
-    name: 'Evolution Community',
-  )
-
   # Note: User management is now handled by evo-auth-service
   # For development, users should be created through the auth service
   # and then synced to evolution using the authentication endpoints
@@ -54,9 +50,9 @@ unless Rails.env.production?
 
   Rails.logger.info "✅ Found admin user: #{user.email}"
 
-  web_widget = Channel::WebWidget.create!(account: account, website_url: 'https://acme.inc')
+  web_widget = Channel::WebWidget.create!(website_url: 'https://acme.inc')
 
-  inbox = Inbox.create!(channel: web_widget, account: account, name: 'Acme Support')
+  inbox = Inbox.create!(channel: web_widget, name: 'Acme Support')
   InboxMember.create!(user: user, inbox: inbox)
 
   contact_inbox = ContactInboxWithContactBuilder.new(
@@ -67,7 +63,6 @@ unless Rails.env.production?
   ).perform
 
   conversation = Conversation.create!(
-    account: account,
     inbox: inbox,
     status: :open,
     assignee: user,
@@ -79,15 +74,14 @@ unless Rails.env.production?
   # sample email collect
   Seeders::MessageSeeder.create_sample_email_collect_message conversation
 
-  Message.create!(content: 'Hello', account: account, inbox: inbox, conversation: conversation, sender: contact_inbox.contact,
+  Message.create!(content: 'Hello', inbox: inbox, conversation: conversation, sender: contact_inbox.contact,
                   message_type: :incoming)
 
   # sample location message
   #
-  location_message = Message.new(content: 'location', account: account, inbox: inbox, sender: contact_inbox.contact, conversation: conversation,
+  location_message = Message.new(content: 'location', inbox: inbox, sender: contact_inbox.contact, conversation: conversation,
                                  message_type: :incoming)
   location_message.attachments.new(
-    account_id: account.id,
     file_type: 'location',
     coordinates_lat: 37.7893768,
     coordinates_long: -122.3895553,
@@ -106,7 +100,7 @@ unless Rails.env.production?
   # csat
   Seeders::MessageSeeder.create_sample_csat_collect_message conversation
 
-  CannedResponse.find_or_create_by!(account: account, short_code: 'start') do |canned_response|
+  CannedResponse.find_or_create_by!(short_code: 'start') do |canned_response|
     canned_response.content = 'Hello welcome to Evolution Community.'
   end
 end

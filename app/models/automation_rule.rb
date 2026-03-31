@@ -25,7 +25,6 @@ class AutomationRule < ApplicationRecord
   include Rails.application.routes.url_helpers
   include Reauthorizable
 
-  belongs_to :account
   has_many_attached :files
 
   validate :json_conditions_format
@@ -33,7 +32,6 @@ class AutomationRule < ApplicationRecord
   validate :json_flow_data_format
   validate :query_operator_presence
   validate :query_operator_value
-  validates :account_id, presence: true
   validates :mode, inclusion: { in: %w[simple flow] }
 
   after_update_commit :reauthorized!, if: -> { saved_change_to_conditions? }
@@ -59,7 +57,6 @@ class AutomationRule < ApplicationRecord
         id: file.id,
         automation_rule_id: id,
         file_type: file.content_type,
-        account_id: account_id,
         file_url: url_for(file),
         blob_id: file.blob_id,
         filename: file.filename.to_s
@@ -121,7 +118,7 @@ class AutomationRule < ApplicationRecord
 
     attributes = conditions.map { |obj, _| obj['attribute_key'] }
     conditions = attributes - conditions_attributes
-    conditions -= account.custom_attribute_definitions.pluck(:attribute_key)
+    conditions -= CustomAttributeDefinition.pluck(:attribute_key)
     errors.add(:conditions, "Automation conditions #{conditions.join(',')} not supported.") if conditions.any?
   end
 

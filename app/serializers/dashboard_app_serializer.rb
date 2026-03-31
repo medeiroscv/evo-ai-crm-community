@@ -13,7 +13,6 @@ module DashboardAppSerializer
       sidebar_menu: dashboard_app.sidebar_menu,
       sidebar_position: dashboard_app.sidebar_position,
       content: dashboard_app.content || {},
-      account_id: dashboard_app.account_id,
       user_id: dashboard_app.user_id,
       created_at: dashboard_app.created_at&.iso8601,
       updated_at: dashboard_app.updated_at&.iso8601

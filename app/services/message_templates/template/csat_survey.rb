@@ -171,7 +171,6 @@ class MessageTemplates::Template::CsatSurvey
 
   def csat_survey_message_params
     {
-      account_id: @conversation.account_id,
       inbox_id: @conversation.inbox_id,
       message_type: :template,
       content_type: :input_csat,

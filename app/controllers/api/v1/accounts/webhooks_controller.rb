@@ -9,7 +9,7 @@ class Api::V1::Accounts::WebhooksController < Api::V1::Accounts::BaseController
   before_action :fetch_webhook, only: [:update, :destroy]
 
   def index
-    @webhooks = Current.account.webhooks
+    @webhooks = Webhook.all
     
     apply_pagination
     
@@ -21,7 +21,7 @@ class Api::V1::Accounts::WebhooksController < Api::V1::Accounts::BaseController
   end
 
   def create
-    @webhook = Current.account.webhooks.new(webhook_create_params)
+    @webhook = Webhook.new(webhook_create_params)
     @webhook.save!
     
     success_response(
@@ -75,6 +75,6 @@ class Api::V1::Accounts::WebhooksController < Api::V1::Accounts::BaseController
   end
 
   def fetch_webhook
-    @webhook = Current.account.webhooks.find(params[:id])
+    @webhook = Webhook.find(params[:id])
   end
 end

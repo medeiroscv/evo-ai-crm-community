@@ -2,7 +2,7 @@
 
 # ConversationFinder otimizado para melhor performance
 class ConversationFinder
-  attr_reader :current_user, :current_account, :params
+  attr_reader :current_user, :params
 
   DEFAULT_STATUS = 'open'.freeze
   SORT_OPTIONS = {
@@ -19,16 +19,14 @@ class ConversationFinder
 
   def initialize(current_user, params)
     @current_user = current_user
-    @current_account = resolve_current_account(current_user)
-    @account_user = @current_account&.account_users&.find_by(user_id: current_user&.id)
     # Avoid remote role lookup (evo-auth get_role) on conversations index hot path.
-    @is_admin = false
-    @has_conversations_read = @account_user&.has_permission?('conversations.read')
+    @is_admin = current_user&.administrator? || false
+    @has_conversations_read = false
     @params = params || {}
   end
 
   def perform
-    return empty_result unless @current_account && @current_user
+    return empty_result unless @current_user
 
     # Use single optimized query for counts with subquery
     counts = calculate_counts_optimized
@@ -45,17 +43,6 @@ class ConversationFinder
   end
 
   private
-
-  def resolve_current_account(user)
-    # Try Current.account first (set by controller)
-    return Current.account if defined?(Current) && Current.respond_to?(:account) && Current.account
-
-    # Fallback to user's first account
-    user&.account_users&.first&.account
-  rescue StandardError => e
-    Rails.logger.warn "ConversationFinder: Could not resolve account - #{e.message}"
-    nil
-  end
 
   def empty_result
     {
@@ -89,7 +76,7 @@ class ConversationFinder
   end
 
   def build_base_filter_query
-    query = @current_account.conversations
+    query = Conversation.all
 
     # Filter out conversations without contacts (data integrity)
     query = query.joins(:contact)
@@ -154,7 +141,7 @@ class ConversationFinder
     return query if @is_admin || @has_conversations_read
 
     # Otherwise, filter by assigned inboxes only
-    query.where(inbox: @current_user.inboxes.where(account_id: @current_account.id))
+    query.where(inbox: @current_user.inboxes)
   end
 
   def apply_status_filter(query)
@@ -166,7 +153,7 @@ class ConversationFinder
   def apply_team_filter(query)
     return query unless @params[:team_id]
 
-    team = @current_account.teams.find(@params[:team_id])
+    team = Team.find(@params[:team_id])
     query.where(team: team)
   end
 

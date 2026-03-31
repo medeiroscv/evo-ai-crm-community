@@ -2,10 +2,8 @@
 class Api::V1::Oauth::PipelineItemsController < Api::V1::Accounts::PipelineItemsController
   include Events::Types
   # Remove os middlewares do controller pai que dependem de account_id na URL
-  skip_before_action :current_account
   skip_before_action :authenticate_request!
 
-  # Remove os before_actions específicos do controller pai que dependem de Current.account
   skip_before_action :set_pipeline
   skip_before_action :set_pipeline_item
   skip_before_action :ensure_authorized_user
@@ -14,7 +12,6 @@ class Api::V1::Oauth::PipelineItemsController < Api::V1::Accounts::PipelineItems
   include Doorkeeper::Rails::Helpers
   include OauthAccountHelper
   before_action :ensure_oauth_authentication!
-  before_action :current_account
   before_action :set_pipeline
   before_action :set_pipeline_item, only: [:update, :destroy, :move_to_stage, :update_conversation, :update_custom_fields]
   before_action :ensure_authorized_user
@@ -140,7 +137,7 @@ class Api::V1::Oauth::PipelineItemsController < Api::V1::Accounts::PipelineItems
 
   # OAuth-aware version of parent controller methods
   def set_pipeline
-    @pipeline = Current.account.pipelines.find(params[:pipeline_id])
+    @pipeline = Pipeline.all.find(params[:pipeline_id])
     authorize @pipeline, :view?
   end
 
@@ -148,13 +145,13 @@ class Api::V1::Oauth::PipelineItemsController < Api::V1::Accounts::PipelineItems
     # For destroy and move_to_stage actions, try to find by conversation_id first, then by pipeline_item id
     if %w[destroy move_to_stage].include?(action_name)
       # First try to find by conversation display_id
-      conversation = Current.account.conversations.find_by(display_id: params[:id])
+      conversation = Conversation.all.find_by(display_id: params[:id])
 
       @pipeline_item = @pipeline.pipeline_items.find_by(conversation: conversation) if conversation
 
       # If not found, try by conversation id
       if @pipeline_item.nil?
-        conversation = Current.account.conversations.find_by(id: params[:id])
+        conversation = Conversation.all.find_by(id: params[:id])
         @pipeline_item = @pipeline.pipeline_items.find_by(conversation: conversation) if conversation
       end
 

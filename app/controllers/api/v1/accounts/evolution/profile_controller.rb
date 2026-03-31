@@ -159,7 +159,6 @@ class Api::V1::Accounts::Evolution::ProfileController < Api::V1::Accounts::BaseC
   def find_whatsapp_channel_by_instance_name(instance_name, provider)
     Channel::Whatsapp.joins(:inbox)
                      .where(provider: provider)
-                     .where(inboxes: { account_id: Current.account.id })
                      .find do |ch|
       config = ch.provider_config || {}
       candidates = [

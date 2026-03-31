@@ -5,8 +5,7 @@ class Api::V1::Oauth::BaseController < Api::BaseController
   # Nossa própria autenticação OAuth (substitui a do pai)
   skip_before_action :authenticate_request!
   before_action :ensure_oauth_authentication!
-  before_action :current_account
-  around_action :switch_locale_using_account_locale
+  around_action :switch_locale_using_default
 
   private
 

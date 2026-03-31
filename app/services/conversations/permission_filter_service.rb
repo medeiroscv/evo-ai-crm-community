@@ -1,14 +1,13 @@
 class Conversations::PermissionFilterService
-  attr_reader :conversations, :user, :account
+  attr_reader :conversations, :user
 
-  def initialize(conversations, user, account)
+  def initialize(conversations, user, _account = nil)
     @conversations = conversations
     @user = user
-    @account = account
   end
 
   def perform
-    return conversations if user_role == 'account_owner'
+    return conversations if user_role == 'administrator'
 
     accessible_conversations
   end
@@ -16,15 +15,11 @@ class Conversations::PermissionFilterService
   private
 
   def accessible_conversations
-    conversations.where(inbox: user.inboxes.where(account_id: account.id))
-  end
-
-  def account_user
-    AccountUser.find_by(account_id: account.id, user_id: user.id)
+    conversations.where(inbox: user.inboxes)
   end
 
   def user_role
-    account_user&.role
+    user.role
   end
 end
 

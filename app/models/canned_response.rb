@@ -12,10 +12,7 @@
 class CannedResponse < ApplicationRecord
   validates :content, presence: true
   validates :short_code, presence: true
-  validates :account, presence: true
-  validates :short_code, uniqueness: { scope: :account_id }
-
-  belongs_to :account
+  validates :short_code, uniqueness: true
 
   # Adicionar associação polimórfica
   has_many :attachments, as: :attachable, dependent: :destroy

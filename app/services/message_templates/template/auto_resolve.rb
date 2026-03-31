@@ -2,21 +2,20 @@ class MessageTemplates::Template::AutoResolve
   pattr_initialize [:conversation!]
 
   def perform
-    return if conversation.account.auto_resolve_message.blank?
+    account = Account.first
+    return if account&.auto_resolve_message.blank?
 
     ActiveRecord::Base.transaction do
-      conversation.messages.create!(auto_resolve_message_params)
+      conversation.messages.create!(auto_resolve_message_params(account))
     end
   end
 
   private
 
-  delegate :contact, :account, to: :conversation
-  delegate :inbox, to: :message
+  delegate :contact, to: :conversation
 
-  def auto_resolve_message_params
+  def auto_resolve_message_params(account)
     {
-      account_id: @conversation.account_id,
       inbox_id: @conversation.inbox_id,
       message_type: :template,
       content: account.auto_resolve_message

@@ -34,7 +34,6 @@ class Line::IncomingMessageService
 
     @message = @conversation.messages.build(
       content: message_content(event),
-      account_id: @inbox.account_id,
       content_type: message_content_type(event),
       inbox_id: @inbox.id,
       message_type: :incoming,
@@ -83,7 +82,6 @@ class Line::IncomingMessageService
     temp_file.rewind
 
     @message.attachments.new(
-      account_id: @message.account_id,
       file_type: file_content_type(response),
       file: {
         io: temp_file,
@@ -122,7 +120,6 @@ class Line::IncomingMessageService
 
   def conversation_params
     {
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       contact_id: @contact.id,
       contact_inbox_id: @contact_inbox.id

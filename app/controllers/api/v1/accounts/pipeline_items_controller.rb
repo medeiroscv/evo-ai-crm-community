@@ -38,8 +38,8 @@ class Api::V1::Accounts::PipelineItemsController < Api::V1::Accounts::BaseContro
     if params[:type] == 'conversation'
       # Try to find by id (UUID) first, then by display_id (integer)
       # This ensures we match UUIDs correctly
-      conversation = Current.account.conversations.find_by(id: params[:item_id]) ||
-                    Current.account.conversations.find_by(display_id: params[:item_id])
+      conversation = Conversation.find_by(id: params[:item_id]) ||
+                    Conversation.find_by(display_id: params[:item_id])
 
       if conversation.nil?
         error_response(
@@ -60,7 +60,7 @@ class Api::V1::Accounts::PipelineItemsController < Api::V1::Accounts::BaseContro
     end
 
     if params[:type] == 'contact'
-      contact = Current.account.contacts.find_by(id: params[:item_id])
+      contact = Contact.find_by(id: params[:item_id])
 
       if contact.nil?
         error_response(
@@ -383,7 +383,7 @@ class Api::V1::Accounts::PipelineItemsController < Api::V1::Accounts::BaseContro
                                              .where.not(conversation_id: nil)
                                              .pluck(:conversation_id)
 
-    current_conversations = Current.account.conversations
+    current_conversations = Conversation.all
                       .joins(:contact, :inbox)
                       .where.not(conversations: { id: conversation_ids_in_pipeline })
                       .where.not(status: 'resolved')
@@ -411,7 +411,7 @@ class Api::V1::Accounts::PipelineItemsController < Api::V1::Accounts::BaseContro
     # Get contacts that are NOT already in THIS specific pipeline
     contacts_in_current_pipeline = @pipeline.pipeline_items.where.not(contact_id: nil).select(:contact_id)
 
-    current_contacts = Current.account.contacts
+    current_contacts = Contact.all
                        .where.not(contacts: { id: contacts_in_current_pipeline })
                        .order(name: :desc)
                        .limit(50)
@@ -447,7 +447,7 @@ class Api::V1::Accounts::PipelineItemsController < Api::V1::Accounts::BaseContro
   end
 
   def set_pipeline
-    @pipeline = Current.account.pipelines.find(params[:pipeline_id])
+    @pipeline = Pipeline.find(params[:pipeline_id])
     authorize @pipeline, :view?
   end
 
@@ -456,12 +456,12 @@ class Api::V1::Accounts::PipelineItemsController < Api::V1::Accounts::BaseContro
     # For destroy and move_to_stage actions, try to find by conversation_id first, then by pipeline_item id
     if %w[destroy move_to_stage update_conversation].include?(action_name)
       # First try to find by conversation display_id
-      conversation = Current.account.conversations.find_by(display_id: params[:id])
+      conversation = Conversation.find_by(display_id: params[:id])
       @pipeline_item = @pipeline.pipeline_items.find_by(conversation: conversation) if conversation
 
       # If not found, try by conversation id (UUID)
       if @pipeline_item.nil?
-        conversation = Current.account.conversations.find_by(id: params[:id])
+        conversation = Conversation.find_by(id: params[:id])
         @pipeline_item = @pipeline.pipeline_items.find_by(conversation: conversation) if conversation
       end
 

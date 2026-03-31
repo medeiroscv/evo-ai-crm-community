@@ -15,7 +15,6 @@ class Telegram::IncomingMessageService
     set_conversation
     @message = @conversation.messages.build(
       content: telegram_params_message_content,
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       message_type: :incoming,
       sender: @contact,
@@ -55,7 +54,6 @@ class Telegram::IncomingMessageService
 
   def conversation_params
     {
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       contact_id: @contact.id,
       contact_inbox_id: @contact_inbox.id,
@@ -117,7 +115,6 @@ class Telegram::IncomingMessageService
     )
 
     @message.attachments.new(
-      account_id: @message.account_id,
       file_type: file_content_type,
       file: {
         io: attachment_file,
@@ -131,7 +128,6 @@ class Telegram::IncomingMessageService
     return unless location
 
     @message.attachments.new(
-      account_id: @message.account_id,
       file_type: :location,
       fallback_title: location_fallback_title,
       coordinates_lat: location['latitude'],
@@ -143,7 +139,6 @@ class Telegram::IncomingMessageService
     return unless contact_card
 
     @message.attachments.new(
-      account_id: @message.account_id,
       file_type: :contact,
       fallback_title: contact_card['phone_number'].to_s,
       meta: {

@@ -10,7 +10,6 @@ module AgentBotSerializer
       id: agent_bot.id,
       name: agent_bot.name,
       description: agent_bot.description,
-      account_id: agent_bot.account_id,
       outgoing_url: agent_bot.outgoing_url,
       bot_type: agent_bot.bot_type,
       bot_provider: agent_bot.bot_provider,

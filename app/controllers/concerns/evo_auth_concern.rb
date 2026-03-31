@@ -27,7 +27,7 @@ module EvoAuthConcern
     end
 
     Current.evo_auth_validation_cache[cache_key] = user_data
-    
+
     set_current_user_from_auth_data(user_data, token, token_type)
     true
   rescue EvoAuthService::ValidationError => e
@@ -61,49 +61,12 @@ module EvoAuthConcern
     elsif token_type == 'api_access_token'
       Current.api_access_token = token
     end
-
-    # Set account context - pass token_data and token_type to allow token_account_id extraction
-    set_account_context(user, user_data['accounts'], user_data, token_type)
-  end
-
-  def set_account_context(user, accounts_data, token_data = {}, token_type = nil)
-    # When using api_access_token, the token may be linked to a specific account
-    # In that case, use that account automatically without requiring account-id header
-    token_account_id = token_data['token_account_id'] || token_data[:token_account_id]
-    is_api_access_token = (token_type || Current.authentication_method) == 'api_access_token'
-    
-    account_id = Account.first&.id
-
-    return unless account_id
-
-    account = Account.find_by(id: account_id)
-    
-    if account && user_has_access_to_account?(user, account)
-      Current.account = account
-      Current.account_user = user.account_users.find_by(account: account)
-      source = if is_api_access_token && token_account_id.present?
-        'api_access_token token'
-      elsif request.headers['account-id']
-        'account-id header'
-      elsif params[:account_id]
-        'params'
-      else
-        'accounts_data fallback'
-      end
-      Rails.logger.debug "EvoAuth: Set account context from #{source} for user=#{user.id} account=#{account.id}"
-    else
-      Rails.logger.warn "EvoAuth: User #{user.id} does not have access to account #{account_id}"
-    end
   end
 
   def find_local_user(user_data)
     return nil unless user_data
 
     User.find_by(email: user_data['email']) || User.find_by(id: user_data['id'])
-  end
-
-  def user_has_access_to_account?(user, account)
-    user.account_users.exists?(account: account)
   end
 
   # Override current_user method to return our authenticated user

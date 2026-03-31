@@ -69,7 +69,7 @@ class Facebook::Moderation::ProcessorService
       moderation_attrs = {
         conversation: conversation,
         message: message,
-        account: conversation.account,
+        account: nil,
         comment_id: message.source_id || message.id.to_s,
         moderation_type: 'response_approval',
         status: 'pending',
@@ -113,7 +113,7 @@ class Facebook::Moderation::ProcessorService
   def check_sentiment
     analyzer = Facebook::Moderation::SentimentAnalysisService.new(
       comment_content: message.content,
-      account: conversation.account
+      account: nil
     )
     analyzer.analyze
   end
@@ -126,7 +126,7 @@ class Facebook::Moderation::ProcessorService
     moderation_attrs = {
       conversation: conversation,
       message: message,
-      account: conversation.account,
+      account: nil,
       comment_id: message.source_id || message.id.to_s,
       moderation_type: moderation_type,
       status: 'pending',
@@ -153,7 +153,7 @@ class Facebook::Moderation::ProcessorService
     moderation_attrs = {
       conversation: conversation,
       message: message,
-      account: conversation.account,
+      account: nil,
       comment_id: message.source_id || message.id.to_s,
       moderation_type: moderation_type,
       status: 'rejected',

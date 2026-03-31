@@ -27,7 +27,6 @@ module CategorySerializer
       locale: category.locale,
       position: category.position,
       portal_id: category.portal_id,
-      account_id: category.account_id,
       created_at: category.created_at&.iso8601,
       updated_at: category.updated_at&.iso8601
     }

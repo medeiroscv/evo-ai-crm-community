@@ -20,14 +20,11 @@
 class Mention < ApplicationRecord
   include SortHandler
 
-  before_validation :ensure_account_id
   validates :mentioned_at, presence: true
-  validates :account_id, presence: true
   validates :conversation_id, presence: true
   validates :user_id, presence: true
   validates :user, uniqueness: { scope: :conversation }
 
-  belongs_to :account
   belongs_to :conversation
   belongs_to :user
 
@@ -47,10 +44,6 @@ class Mention < ApplicationRecord
   end
 
   private
-
-  def ensure_account_id
-    self.account_id = conversation&.account_id
-  end
 
   def notify_mentioned_user
     Rails.configuration.dispatcher.dispatch(CONVERSATION_MENTIONED, Time.zone.now, user: user, conversation: conversation)

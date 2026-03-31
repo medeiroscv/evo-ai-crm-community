@@ -246,8 +246,7 @@ module AgentBots
         evoai_crm_data: {
           conversation_id: @conversation.id.to_s,
           conversation_display_id: @conversation.display_id,
-          inbox_id: @inbox.id.to_s,
-          account_id: @conversation.account_id.to_s
+          inbox_id: @inbox.id.to_s
         },
         agent_bot_id: @agent_bot.id.to_s,
         agent_bot_name: @agent_bot.name,

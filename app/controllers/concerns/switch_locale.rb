@@ -7,21 +7,14 @@ module SwitchLocale
     # priority is for locale set in query string (mostly for widget/from js sdk)
     locale ||= params[:locale]
 
-    locale ||= locale_from_custom_domain
-    # if locale is not set in account, let's use DEFAULT_LOCALE env variable
+    # if locale is not set, use DEFAULT_LOCALE env variable or Rails default
     locale ||= ENV.fetch('DEFAULT_LOCALE', nil)
     set_locale(locale, &)
   end
 
-  def switch_locale_using_account_locale(&)
-    locale = locale_from_account(@current_account)
+  def switch_locale_using_default(&)
+    locale = ENV.fetch('DEFAULT_LOCALE', I18n.default_locale.to_s)
     set_locale(locale, &)
-  end
-
-  # Custom domain locale detection removed - portals no longer exist
-  def locale_from_custom_domain(&)
-    # Portals removed, no custom domain locale detection
-    nil
   end
 
   def set_locale(locale, &)
@@ -44,11 +37,5 @@ module SwitchLocale
     else
       I18n.default_locale.to_s
     end
-  end
-
-  def locale_from_account(account)
-    return unless account
-
-    account.locale
   end
 end

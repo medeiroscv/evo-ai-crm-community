@@ -63,7 +63,7 @@ class ConversationReplyMailer < ApplicationMailer
 
   def init_conversation_attributes(conversation)
     @conversation = conversation
-    @account = @conversation.account
+    @account = Account.first
     @contact = @conversation.contact
     @agent = @conversation.assignee
     @inbox = @conversation.inbox
@@ -156,7 +156,7 @@ class ConversationReplyMailer < ApplicationMailer
   end
 
   def in_reply_to_email
-    conversation_reply_email_id || "<account/#{@account.id}/conversation/#{@conversation.uuid}@#{channel_email_domain}>"
+    conversation_reply_email_id || "<conversation/#{@conversation.uuid}@#{channel_email_domain}>"
   end
 
   def conversation_reply_email_id

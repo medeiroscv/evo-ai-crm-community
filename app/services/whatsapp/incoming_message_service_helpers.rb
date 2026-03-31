@@ -5,7 +5,6 @@ module Whatsapp::IncomingMessageServiceHelpers
 
   def conversation_params
     {
-      account_id: @inbox.account_id,
       inbox_id: @inbox.id,
       contact_id: @contact.id,
       contact_inbox_id: @contact_inbox.id

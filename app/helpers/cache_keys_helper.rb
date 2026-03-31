@@ -1,10 +1,10 @@
 module CacheKeysHelper
-  def get_prefixed_cache_key(account_id, key)
-    "idb-cache-key-account-#{account_id}-#{key}"
+  def get_prefixed_cache_key(_account_id = nil, key)
+    "idb-cache-key-#{key}"
   end
 
-  def fetch_value_for_key(account_id, key)
-    prefixed_cache_key = get_prefixed_cache_key(account_id, key)
+  def fetch_value_for_key(_account_id = nil, key)
+    prefixed_cache_key = get_prefixed_cache_key(nil, key)
     value_from_cache = Redis::Alfred.get(prefixed_cache_key)
 
     return value_from_cache if value_from_cache.present?

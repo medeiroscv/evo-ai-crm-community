@@ -41,7 +41,7 @@ class Facebook::Moderation::ResponseGeneratorService
       event: 'message_created',
       message: message.webhook_data,
       conversation: conversation.webhook_data,
-      account: conversation.account.webhook_data,
+      account: {},
       inbox: conversation.inbox.webhook_data,
       contact: conversation.contact.webhook_data
     }

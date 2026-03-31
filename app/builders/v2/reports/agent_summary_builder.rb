@@ -1,5 +1,5 @@
 class V2::Reports::AgentSummaryBuilder < V2::Reports::BaseSummaryBuilder
-  pattr_initialize [:account!, :params!]
+  pattr_initialize [:account, :params!]
 
   def build
     load_data
@@ -12,17 +12,17 @@ class V2::Reports::AgentSummaryBuilder < V2::Reports::BaseSummaryBuilder
               :avg_resolution_time, :avg_first_response_time, :avg_reply_time
 
   def fetch_conversations_count
-    account.conversations.where(created_at: range).group('assignee_id').count
+    Conversation.where(created_at: range).group('assignee_id').count
   end
 
   def prepare_report
-    account.account_users.map do |account_user|
-      build_agent_stats(account_user)
+    User.all.map do |user|
+      build_agent_stats(user)
     end
   end
 
-  def build_agent_stats(account_user)
-    user_id = account_user.user_id
+  def build_agent_stats(user)
+    user_id = user.id
     {
       id: user_id,
       conversations_count: conversations_count[user_id] || 0,

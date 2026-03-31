@@ -7,7 +7,7 @@ class DataImportJob < ApplicationJob
 
   def perform(data_import)
     @data_import = data_import
-    @contact_manager = DataImport::ContactManager.new(@data_import.account)
+    @contact_manager = DataImport::ContactManager.new
     begin
       process_import_file
       send_import_notification_to_admin
@@ -93,10 +93,10 @@ class DataImportJob < ApplicationJob
   end
 
   def send_import_notification_to_admin
-    AdministratorNotifications::AccountNotificationMailer.with(account: @data_import.account).contact_import_complete(@data_import).deliver_later
+    AdministratorNotifications::AccountNotificationMailer.with(account: nil).contact_import_complete(@data_import).deliver_later
   end
 
   def send_import_failed_notification_to_admin
-    AdministratorNotifications::AccountNotificationMailer.with(account: @data_import.account).contact_import_failed.deliver_later
+    AdministratorNotifications::AccountNotificationMailer.with(account: nil).contact_import_failed.deliver_later
   end
 end

@@ -4,7 +4,6 @@ class Api::V1::Accounts::BulkActionsController < Api::V1::Accounts::BaseControll
   def create
     if type_matches?
       ::BulkActionsJob.perform_now(
-        account: @current_account,
         user: current_user,
         params: permitted_params
       )

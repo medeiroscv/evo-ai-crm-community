@@ -31,7 +31,7 @@ class Linear::CallbacksController < ApplicationController
   end
 
   def handle_response
-    hook = account.hooks.new(
+    hook = Hook.new(
       access_token: parsed_body['access_token'],
       status: 'enabled',
       app_id: 'linear',
@@ -49,18 +49,8 @@ class Linear::CallbacksController < ApplicationController
     redirect_to linear_redirect_uri
   end
 
-  def account
-    @account ||= Account.find(account_id)
-  end
-
-  def account_id
-    return unless params[:state]
-
-    verify_linear_token(params[:state])
-  end
-
   def linear_redirect_uri
-    "#{ENV.fetch('FRONTEND_URL', nil)}/app/accounts/#{account.id}/settings/integrations/linear"
+    "#{ENV.fetch('FRONTEND_URL', nil)}/app/settings/integrations/linear"
   end
 
   def parsed_body

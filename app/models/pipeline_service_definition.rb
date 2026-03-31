@@ -27,18 +27,15 @@
 #
 class PipelineServiceDefinition < ApplicationRecord
   belongs_to :pipeline
-  belongs_to :account
 
   validates :name, presence: true, length: { maximum: 255 }
   validates :name, uniqueness: { scope: [:pipeline_id] }
   validates :default_value, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :currency, presence: true, inclusion: { in: %w[BRL USD EUR] }
   validates :pipeline_id, presence: true
-  validates :account_id, presence: true
 
   scope :active, -> { where(active: true) }
   scope :for_pipeline, ->(pipeline) { where(pipeline: pipeline) }
-  scope :for_account, ->(account) { where(account: account) }
 
   def formatted_default_value
     case currency

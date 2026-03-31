@@ -6,7 +6,7 @@ class Api::V1::Accounts::IntegrationsController < Api::V1::Accounts::BaseControl
   end
 
   def set_hook
-    @hook = Current.account.hooks.find(params[:id])
+    @hook = Integrations::Hook.find(params[:id])
   end
 
   def process_event_payload

@@ -8,7 +8,7 @@ class Api::V1::Accounts::AiFoldersController < Api::V1::Accounts::BaseController
       pageSize: params[:pageSize] || 100
     }
 
-    Rails.logger.info "AI Folders Index - Current Account: #{Current.account&.id}, User: #{Current.user&.id}, Params: #{params_hash}"
+    Rails.logger.info "AI Folders Index - User: #{Current.user&.id}, Params: #{params_hash}"
     
     response = EvoAiCoreService.list_folders(params_hash, request.headers)
     

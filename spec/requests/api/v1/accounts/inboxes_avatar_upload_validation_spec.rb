@@ -3,16 +3,14 @@
 require 'rails_helper'
 
 RSpec.describe 'PATCH /api/v1/inboxes/:id avatar validation', type: :request do
-  let(:account) { Account.create!(name: 'Spec Account') }
   let(:service_token) { 'spec-service-token' }
   let(:headers) do
     {
-      'X-Service-Token' => service_token,
-      'account-id' => account.id.to_s
+      'X-Service-Token' => service_token
     }
   end
-  let(:web_widget_channel) { Channel::WebWidget.create!(account: account, website_url: 'https://example.test') }
-  let(:inbox) { Inbox.create!(account: account, channel: web_widget_channel, name: 'Widget Inbox') }
+  let(:web_widget_channel) { Channel::WebWidget.create!(website_url: 'https://example.test') }
+  let(:inbox) { Inbox.create!(channel: web_widget_channel, name: 'Widget Inbox') }
   let(:invalid_avatar) do
     Rack::Test::UploadedFile.new(
       Rails.root.join('spec/fixtures/files/invalid_avatar.txt'),
@@ -22,7 +20,6 @@ RSpec.describe 'PATCH /api/v1/inboxes/:id avatar validation', type: :request do
 
   before do
     ENV['EVOAI_CRM_API_TOKEN'] = service_token
-    Current.account = account
   end
 
   after do

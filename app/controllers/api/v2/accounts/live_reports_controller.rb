@@ -53,11 +53,11 @@ class Api::V2::Accounts::LiveReportsController < Api::V1::Accounts::BaseControll
   def team
     return unless permitted_params[:team_id]
 
-    @team ||= Current.account.teams.find(permitted_params[:team_id])
+    @team ||= Team.find(permitted_params[:team_id])
   end
 
   def load_conversations
-    scope = Current.account.conversations
+    scope = Conversation.all
     scope = scope.where(team_id: team.id) if team.present?
     @conversations = scope
   end

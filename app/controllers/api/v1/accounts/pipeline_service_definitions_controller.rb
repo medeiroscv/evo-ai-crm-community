@@ -28,7 +28,7 @@ class Api::V1::Accounts::PipelineServiceDefinitionsController < Api::V1::Account
 
   def create
     @service_definition = @pipeline.pipeline_service_definitions.new(
-      service_definition_params.merge(account: Current.account)
+      service_definition_params
     )
 
     if @service_definition.save
@@ -71,7 +71,7 @@ class Api::V1::Accounts::PipelineServiceDefinitionsController < Api::V1::Account
   private
 
   def set_pipeline
-    @pipeline = Current.account.pipelines.find(params[:pipeline_id])
+    @pipeline = Pipeline.find(params[:pipeline_id])
     authorize @pipeline, :view?
   end
 

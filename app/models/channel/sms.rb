@@ -74,7 +74,7 @@ class Channel::Sms < ApplicationRecord
   end
 
   def handle_error(response, message)
-    Rails.logger.error("[#{account_id}] Error sending SMS: #{response.parsed_response['description']}")
+    Rails.logger.error("Error sending SMS: #{response.parsed_response['description']}")
     return if message.blank?
 
     # https://dev.bandwidth.com/apis/messaging-apis/messaging/#tag/Messages/operation/createMessage

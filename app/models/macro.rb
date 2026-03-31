@@ -19,7 +19,6 @@
 class Macro < ApplicationRecord
   include Rails.application.routes.url_helpers
 
-  belongs_to :account
   belongs_to :created_by,
              class_name: :User, optional: true, inverse_of: :macros
   belongs_to :updated_by,
@@ -46,8 +45,8 @@ class Macro < ApplicationRecord
   end
 
   def self.with_visibility(user, _params)
-    records = Current.account.macros.global
-    records = records.or(personal.where(created_by_id: user.id, account_id: Current.account.id))
+    records = Macro.global
+    records = records.or(personal.where(created_by_id: user.id))
     records.order(:id)
   end
 
@@ -61,7 +60,6 @@ class Macro < ApplicationRecord
         id: file.id,
         macro_id: id,
         file_type: file.content_type,
-        account_id: account_id,
         file_url: url_for(file),
         blob_id: file.blob_id,
         filename: file.filename.to_s

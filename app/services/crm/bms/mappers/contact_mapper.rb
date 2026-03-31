@@ -195,7 +195,6 @@ class Crm::Bms::Mappers::ContactMapper
     device_type = determine_device_type
 
     {
-      accountId: contact.account_id,
       contactId: contact.id,
       type: device_type,
       token: generate_device_token,

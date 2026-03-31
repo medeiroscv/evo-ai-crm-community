@@ -51,7 +51,6 @@ class PipelineTask < ApplicationRecord
 
   # Associations
   belongs_to :pipeline_item
-  belongs_to :account
   belongs_to :created_by, class_name: 'User'
   belongs_to :assigned_to, class_name: 'User', optional: true
 
@@ -94,8 +93,6 @@ class PipelineTask < ApplicationRecord
   validates :priority, presence: true
 
   validate :due_date_cannot_exceed_parent, if: :parent_task_id?
-  validate :assigned_to_belongs_to_account
-  validate :parent_task_belongs_to_same_account
   validate :parent_task_belongs_to_same_pipeline_item
   validate :prevent_circular_hierarchy
   validate :max_hierarchy_depth
@@ -324,21 +321,6 @@ class PipelineTask < ApplicationRecord
     if due_date > parent_task.due_date
       errors.add(:due_date, 'cannot be later than parent task due date')
     end
-  end
-
-  def assigned_to_belongs_to_account
-    return if assigned_to_id.blank?
-
-    return if account.account_users.exists?(user_id: assigned_to_id)
-
-    errors.add(:assigned_to, 'must belong to the same account')
-  end
-
-  def parent_task_belongs_to_same_account
-    return unless parent_task.present?
-    return if parent_task.account_id == account_id
-    
-    errors.add(:parent_task, 'must belong to the same account')
   end
 
   def parent_task_belongs_to_same_pipeline_item

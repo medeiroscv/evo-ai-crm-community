@@ -58,7 +58,7 @@ module InboxSerializer
         result['webhook_url'] = inbox.channel.webhook_url
         result['inbox_identifier'] = inbox.channel.identifier
         result['additional_attributes'] = inbox.channel.additional_attributes
-        result['hmac_token'] = inbox.channel.hmac_token if Current.account_user&.administrator?
+        result['hmac_token'] = inbox.channel.hmac_token if Current.user&.role == 'administrator'
       end
 
       # WebWidget specific fields
@@ -76,7 +76,7 @@ module InboxSerializer
         result['pre_chat_form_options'] = inbox.channel.pre_chat_form_options
         result['continuity_via_email'] = inbox.channel.continuity_via_email
         result['hmac_mandatory'] = inbox.channel.hmac_mandatory
-        result['hmac_token'] = inbox.channel.hmac_token if Current.account_user&.administrator?
+        result['hmac_token'] = inbox.channel.hmac_token if Current.user&.role == 'administrator'
       end
 
       # Include full channel if requested
@@ -84,7 +84,7 @@ module InboxSerializer
       if include_channel
         channel_data = inbox.channel.as_json(except: [:created_at, :updated_at, :hmac_token])
         # Only include hmac_token if user is administrator
-        if Current.account_user&.administrator? && inbox.channel.respond_to?(:hmac_token)
+        if Current.user&.role == 'administrator' && inbox.channel.respond_to?(:hmac_token)
           channel_data['hmac_token'] = inbox.channel.hmac_token
         end
         result['channel'] = channel_data

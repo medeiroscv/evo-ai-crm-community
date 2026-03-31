@@ -7,7 +7,7 @@ class Messages::MentionService
     validated_mentioned_ids = filter_mentioned_ids_by_inbox
     return if validated_mentioned_ids.blank?
 
-    Conversations::UserMentionJob.perform_later(validated_mentioned_ids, message.conversation.id, message.account.id)
+    Conversations::UserMentionJob.perform_later(validated_mentioned_ids, message.conversation.id, Account.first&.id)
     generate_notifications_for_mentions(validated_mentioned_ids)
     add_mentioned_users_as_participants(validated_mentioned_ids)
   end
@@ -24,7 +24,7 @@ class Messages::MentionService
 
   def filter_mentioned_ids_by_inbox
     inbox = message.inbox
-    valid_mentionable_ids = inbox.account.administrators.map(&:id) + inbox.members.map(&:id)
+    valid_mentionable_ids = User.where(type: 'SuperAdmin').pluck(:id) + inbox.members.map(&:id)
     # Intersection of ids
     mentioned_ids & valid_mentionable_ids.uniq.map(&:to_s)
   end
@@ -34,7 +34,7 @@ class Messages::MentionService
       NotificationBuilder.new(
         notification_type: 'conversation_mention',
         user: User.find(user_id),
-        account: message.account,
+        account: Account.first,
         primary_actor: message.conversation,
         secondary_actor: message
       ).perform

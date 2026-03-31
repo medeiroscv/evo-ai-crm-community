@@ -18,15 +18,12 @@
 #
 class Label < ApplicationRecord
   include RegexHelper
-  include AccountCacheRevalidator
   include Events::Types
-
-  belongs_to :account
 
   validates :title,
             presence: { message: I18n.t('errors.validations.presence') },
             format: { with: UNICODE_CHARACTER_NUMBER_SPACE_HYPHEN_UNDERSCORE, allow_blank: true },
-            uniqueness: { scope: :account_id }
+            uniqueness: true
 
   after_create_commit :dispatch_create_event
   after_update_commit :update_associated_models, :dispatch_update_event
@@ -43,15 +40,15 @@ class Label < ApplicationRecord
   end
 
   def conversations
-    account.conversations.tagged_with(title)
+    Conversation.tagged_with(title)
   end
 
   def messages
-    account.messages.where(conversation_id: conversations.pluck(:id))
+    Message.where(conversation_id: conversations.pluck(:id))
   end
 
   def reporting_events
-    account.reporting_events.where(conversation_id: conversations.pluck(:id))
+    ReportingEvent.where(conversation_id: conversations.pluck(:id))
   end
 
   private
@@ -59,18 +56,18 @@ class Label < ApplicationRecord
   def update_associated_models
     return unless title_previously_changed?
 
-    Labels::UpdateJob.perform_later(title, title_previously_was, account_id)
+    Labels::UpdateJob.perform_later(title, title_previously_was)
   end
 
   def dispatch_create_event
-    Rails.configuration.dispatcher.dispatch(LABEL_CREATED, Time.zone.now, label: self, account: account)
+    Rails.configuration.dispatcher.dispatch(LABEL_CREATED, Time.zone.now, label: self)
   end
 
   def dispatch_update_event
-    Rails.configuration.dispatcher.dispatch(LABEL_UPDATED, Time.zone.now, label: self, account: account, saved_changes: saved_changes)
+    Rails.configuration.dispatcher.dispatch(LABEL_UPDATED, Time.zone.now, label: self, saved_changes: saved_changes)
   end
 
   def dispatch_destroy_event
-    Rails.configuration.dispatcher.dispatch(LABEL_DELETED, Time.zone.now, label: self, account: account)
+    Rails.configuration.dispatcher.dispatch(LABEL_DELETED, Time.zone.now, label: self)
   end
 end

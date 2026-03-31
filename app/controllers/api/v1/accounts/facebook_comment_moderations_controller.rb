@@ -19,7 +19,7 @@ module Api
           @moderations = if @conversation.present?
             @conversation.facebook_comment_moderations
           else
-            Current.account.facebook_comment_moderations
+            FacebookCommentModeration.all
           end
 
           @moderations = @moderations.where(status: params[:status]) if params[:status].present?
@@ -106,11 +106,11 @@ module Api
         private
 
         def fetch_moderation
-          @moderation = Current.account.facebook_comment_moderations.includes(:message, :conversation, :moderated_by).find(params[:id])
+          @moderation = FacebookCommentModeration.all.includes(:message, :conversation, :moderated_by).find(params[:id])
         end
 
         def fetch_conversation
-          @conversation = Current.account.conversations.find(params[:conversation_id]) if params[:conversation_id].present?
+          @conversation = Conversation.find(params[:conversation_id]) if params[:conversation_id].present?
         end
       end
     end

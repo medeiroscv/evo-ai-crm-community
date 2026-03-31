@@ -19,7 +19,7 @@ class Api::V1::Accounts::Instagram::AuthorizationsController < Api::V1::Accounts
         enable_fb_login: '0',
         force_authentication: '1',
         response_type: 'code',
-        state: generate_instagram_token(Current.account.id)
+        state: generate_instagram_token('community')
       }
     )
     if redirect_url
@@ -41,7 +41,7 @@ class Api::V1::Accounts::Instagram::AuthorizationsController < Api::V1::Accounts
 
     begin
       account_id = verify_instagram_token(state)
-      unless account_id.present? && account_id.to_s == Current.account.id.to_s
+      unless account_id.present?
         render json: { success: false, error: 'Invalid or expired state token' }, status: :unauthorized
         return
       end
@@ -85,8 +85,7 @@ class Api::V1::Accounts::Instagram::AuthorizationsController < Api::V1::Accounts
 
     # Try to find existing channel
     channel_instagram = Channel::Instagram.find_by(
-      instagram_id: instagram_id,
-      account: Current.account
+      instagram_id: instagram_id
     )
 
     if channel_instagram
@@ -107,12 +106,10 @@ class Api::V1::Accounts::Instagram::AuthorizationsController < Api::V1::Accounts
         channel_instagram = Channel::Instagram.create!(
           access_token: token_response['access_token'],
           instagram_id: instagram_id,
-          account: Current.account,
           expires_at: expires_at
         )
 
-        Current.account.inboxes.create!(
-          account: Current.account,
+        Inbox.create!(
           channel: channel_instagram,
           name: user_details['username']
         )

@@ -6,8 +6,8 @@ class PipelineTaskPolicy < ApplicationPolicy
   def show?
     return true if @account_user.administrator?
 
-    # Agents can see tasks from their account
-    @record.account_id == @account_user.account_id
+    # Agents can see tasks
+    @account_user.agent?
   end
 
   def create?

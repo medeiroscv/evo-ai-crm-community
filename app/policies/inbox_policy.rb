@@ -23,10 +23,6 @@ class InboxPolicy < ApplicationPolicy
     # FIXME: for agent bots, lets bring this validation to policies as well in future
     return true if @user.is_a?(AgentBot)
 
-    # For service token authentication, Current.user might be nil
-    # In that case, allow access if we have a valid service context
-    return true if Current.user.nil? && Current.account.present?
-
     # Administrators or users with inboxes.read permission can view any inbox
     return true if @account_user&.administrator? || @account_user&.has_permission?('inboxes.read')
 

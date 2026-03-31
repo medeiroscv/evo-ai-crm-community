@@ -7,13 +7,12 @@ class Api::V1::Accounts::ContactBulkTransfersController < Api::V1::Accounts::Bas
     service_result = Contacts::BulkTransferService.new(
       contact_ids: bulk_transfer_params[:contact_ids],
       from_company_id: bulk_transfer_params[:from_company_id],
-      to_company_id: bulk_transfer_params[:to_company_id],
-      account: Current.account
+      to_company_id: bulk_transfer_params[:to_company_id]
     ).perform
 
     if service_result[:success]
-      from_company = Current.account.contacts.companies.find_by(id: bulk_transfer_params[:from_company_id])
-      to_company = Current.account.contacts.companies.find_by(id: bulk_transfer_params[:to_company_id])
+      from_company = Contact.companies.find_by(id: bulk_transfer_params[:from_company_id])
+      to_company = Contact.companies.find_by(id: bulk_transfer_params[:to_company_id])
       
       render json: {
         success: true,

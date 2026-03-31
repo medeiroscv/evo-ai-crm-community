@@ -25,11 +25,9 @@
 #  index_reporting_events_on_user_id          (user_id)
 #
 class ReportingEvent < ApplicationRecord
-  validates :account_id, presence: true
   validates :name, presence: true
   validates :value, presence: true
 
-  belongs_to :account
   belongs_to :user, optional: true
   belongs_to :inbox, optional: true
   belongs_to :conversation, optional: true

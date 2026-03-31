@@ -11,7 +11,7 @@ class Api::V1::Accounts::Microsoft::AuthorizationsController < Api::V1::Accounts
 
   def create
     email = params[:authorization][:email]
-    state_token = generate_microsoft_token(Current.account.id)
+    state_token = generate_microsoft_token('community')
 
     redirect_url = microsoft_client.auth_code.authorize_url(
       {
@@ -24,7 +24,7 @@ class Api::V1::Accounts::Microsoft::AuthorizationsController < Api::V1::Accounts
 
     if redirect_url
       cache_key = "microsoft::#{email.downcase}"
-      ::Redis::Alfred.setex(cache_key, Current.account.id, 5.minutes)
+      ::Redis::Alfred.setex(cache_key, 'community', 5.minutes)
       render json: { success: true, url: redirect_url }
     else
       render json: { success: false }, status: :unprocessable_entity
@@ -76,9 +76,8 @@ class Api::V1::Accounts::Microsoft::AuthorizationsController < Api::V1::Accounts
         raise StandardError, 'Could not retrieve user email from Microsoft Graph'
       end
 
-      # Find or create channel and inbox
-      account = Account.find(account_id)
-      channel_email = find_or_create_channel(account, user_email, users_data, parsed_body)
+      # Find or create channel and inbox (single-tenant, no account lookup needed)
+      channel_email = find_or_create_channel(user_email, users_data, parsed_body)
 
       # Mark as reauthorized
       channel_email.reauthorized!
@@ -102,10 +101,10 @@ class Api::V1::Accounts::Microsoft::AuthorizationsController < Api::V1::Accounts
 
   private
 
-  def find_or_create_channel(account, user_email, users_data, parsed_body)
+  def find_or_create_channel(user_email, users_data, parsed_body)
     # Try to find existing channel by email or imap_login
-    channel_email = Channel::Email.find_by(imap_login: user_email, account: account) ||
-                    Channel::Email.find_by(email: user_email, account: account)
+    channel_email = Channel::Email.find_by(imap_login: user_email) ||
+                    Channel::Email.find_by(email: user_email)
 
     if channel_email
       # Update existing channel
@@ -137,7 +136,6 @@ class Api::V1::Accounts::Microsoft::AuthorizationsController < Api::V1::Accounts
           imap_port: '993',
           imap_enabled: true,
           provider: 'microsoft',
-          account: account,
           provider_config: {
             access_token: parsed_body['access_token'],
             refresh_token: parsed_body['refresh_token'],
@@ -145,8 +143,7 @@ class Api::V1::Accounts::Microsoft::AuthorizationsController < Api::V1::Accounts
           }
         )
 
-        account.inboxes.create!(
-          account: account,
+        Inbox.create!(
           channel: channel_email,
           name: users_data['displayName'] || fallback_name(user_email)
         )

@@ -22,7 +22,6 @@ module CannedResponseSerializer
       id: canned_response.id,
       short_code: canned_response.short_code,
       content: canned_response.content,
-      account_id: canned_response.account_id,
       created_at: canned_response.created_at&.iso8601,
       updated_at: canned_response.updated_at&.iso8601
     }

@@ -86,6 +86,6 @@ class ReplyMailbox < ApplicationMailbox
   end
 
   def decorate_mail
-    @processed_mail = MailPresenter.new(mail, @conversation.account)
+    @processed_mail = MailPresenter.new(mail)
   end
 end

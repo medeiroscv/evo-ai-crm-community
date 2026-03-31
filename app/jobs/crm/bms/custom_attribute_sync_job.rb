@@ -1,11 +1,10 @@
 class Crm::Bms::CustomAttributeSyncJob < ApplicationJob
   queue_as :integrations
 
-  def perform(custom_attribute_definition_id, account_id, action = 'sync')
-    @custom_attribute_definition = CustomAttributeDefinition.find_by(id: custom_attribute_definition_id, account_id: account_id)
+  def perform(custom_attribute_definition_id, _account_id = nil, action = 'sync')
+    @custom_attribute_definition = CustomAttributeDefinition.find_by(id: custom_attribute_definition_id)
     return unless @custom_attribute_definition
 
-    @account = Account.find(account_id)
     @hook = find_bms_hook
     return unless @hook&.feature_allowed?
     return unless @hook.settings['enable_custom_attributes_sync']
@@ -45,11 +44,10 @@ class Crm::Bms::CustomAttributeSyncJob < ApplicationJob
   end
 
   def get_custom_attribute_external_id
-    # Get from cache for now (matches processor service implementation)
-    Rails.cache.read("bms_custom_field_mapping_#{@account.id}_#{@custom_attribute_definition.id}")
+    Rails.cache.read("bms_custom_field_mapping_#{@custom_attribute_definition.id}")
   end
 
   def find_bms_hook
-    @account.hooks.where(app_id: 'bms').first
+    Integrations::Hook.where(app_id: 'bms').first
   end
 end

@@ -10,14 +10,14 @@ class Notification::EmailNotificationService
 
     # TODO : Clean up whatever happening over here
     # Segregate the mailers properly
-    AgentNotifications::ConversationNotificationsMailer.with(account: notification.account).public_send(notification
+    AgentNotifications::ConversationNotificationsMailer.with(account: Account.first).public_send(notification
       .notification_type.to_s, notification.primary_actor, notification.user, notification.secondary_actor).deliver_later
   end
 
   private
 
   def user_subscribed_to_notification?
-    notification_setting = notification.user.notification_settings.find_by(account_id: notification.account.id)
+    notification_setting = notification.user.notification_settings.first
     return true if notification_setting.public_send("email_#{notification.notification_type}?")
 
     false

@@ -22,7 +22,7 @@ class Api::V1::Widget::Integrations::DyteController < Api::V1::Widget::BaseContr
   end
 
   def dyte_processor_service
-    Integrations::Dyte::ProcessorService.new(account: @web_widget.inbox.account, conversation: @conversation)
+    Integrations::Dyte::ProcessorService.new(account: nil, conversation: @conversation)
   end
 
   def set_message

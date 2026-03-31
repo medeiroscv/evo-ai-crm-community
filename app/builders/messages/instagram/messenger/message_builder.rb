@@ -18,7 +18,7 @@ class Messages::Instagram::Messenger::MessageBuilder < Messages::Instagram::Base
     Rails.logger.error e
     {}
   rescue StandardError => e
-    EvolutionExceptionTracker.new(e, account: @inbox.account).capture_exception
+    EvolutionExceptionTracker.new(e, account: nil).capture_exception
     {}
   end
 

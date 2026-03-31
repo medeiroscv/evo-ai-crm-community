@@ -1,5 +1,4 @@
 class Integrations::Hubspot::ProcessorService
-  pattr_initialize [:account!]
 
   def pipelines
     response = hubspot_client.get_pipelines
@@ -76,7 +75,7 @@ class Integrations::Hubspot::ProcessorService
     # Extract conversation ID from link_id
     begin
       conversation_id, deal_id = link_id.split('_')
-      conversation = account.conversations.find(conversation_id)
+      conversation = Conversation.find(conversation_id)
 
       metadata = conversation.additional_attributes || {}
       metadata['hubspot']&.delete('linked_deal_id')
@@ -142,7 +141,7 @@ class Integrations::Hubspot::ProcessorService
   private
 
   def hubspot_hook
-    @hubspot_hook ||= account.hooks.find_by!(app_id: 'hubspot')
+    @hubspot_hook ||= Hook.find_by!(app_id: 'hubspot')
   end
 
   def hubspot_client
@@ -151,11 +150,11 @@ class Integrations::Hubspot::ProcessorService
 
   def find_conversation_from_link(link)
     # Extract conversation display_id from URL
-    # URL format: /app/accounts/{account_id}/conversations/{display_id}
+    # URL format: /app/conversations/{display_id}
     match = link.match(/conversations\/(\d+)/)
     return nil unless match
 
     display_id = match[1]
-    account.conversations.find_by(display_id: display_id)
+    Conversation.find_by(display_id: display_id)
   end
 end

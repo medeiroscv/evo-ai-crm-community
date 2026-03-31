@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
-# Serviço para cache das contagens de conversas para melhorar performance
+# Servico para cache das contagens de conversas para melhorar performance
 class Conversations::CachedCountService
   include Wisper::Publisher
 
   CACHE_EXPIRY = 5.minutes
 
-  def initialize(user, account, filters = {})
+  def initialize(user, _account = nil, filters = {})
     @user = user
-    @account = account
     @filters = filters
   end
 
@@ -21,7 +20,7 @@ class Conversations::CachedCountService
   end
 
   def invalidate_cache
-    pattern = "conversations:counts:#{@account.id}:#{@user.id}:*"
+    pattern = "conversations:counts:#{@user.id}:*"
 
     # Use Redis SCAN for pattern matching
     Redis.current.scan_each(match: pattern) do |key|
@@ -33,11 +32,11 @@ class Conversations::CachedCountService
 
   def build_cache_key
     filters_hash = @filters.sort.to_h.hash
-    "conversations:counts:#{@account.id}:#{@user.id}:#{filters_hash}"
+    "conversations:counts:#{@user.id}:#{filters_hash}"
   end
 
   def calculate_counts_from_database
-    base_query = @account.conversations
+    base_query = Conversation.all
 
     # Apply filters efficiently
     base_query = apply_filters(base_query)
@@ -72,14 +71,14 @@ class Conversations::CachedCountService
   end
 
   def apply_permission_filter(query)
-    is_admin = @account.account_users.find_by(user_id: @user.id)&.administrator?
+    is_admin = @user.administrator?
     return query if is_admin
 
-    query.where(inbox: @user.inboxes.where(account_id: @account.id))
+    query.where(inbox: @user.inboxes)
   end
 
   def apply_team_filter(query)
-    team = @account.teams.find(@filters[:team_id])
+    team = Team.find(@filters[:team_id])
     query.where(team: team)
   end
 

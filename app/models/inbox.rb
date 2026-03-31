@@ -37,12 +37,10 @@ class Inbox < ApplicationRecord
   include Reportable
   include Avatarable
   include OutOfOffisable
-  include AccountCacheRevalidator
   include InstanceNameSanitizable
 
   # Not allowing characters:
   validates :name, presence: true
-  validates :account_id, presence: true
   validates :timezone, inclusion: { in: TZInfo::Timezone.all_identifiers }
   validates :out_of_office_message, length: { maximum: Limits::OUT_OF_OFFICE_MESSAGE_MAX_LENGTH }
   validates :greeting_message, length: { maximum: Limits::GREETING_MESSAGE_MAX_LENGTH }
@@ -50,8 +48,6 @@ class Inbox < ApplicationRecord
   validate :validate_default_conversation_status
 
   before_validation :sanitize_instance_name_and_set_display_name
-
-  belongs_to :account
 
   belongs_to :channel, polymorphic: true, dependent: :destroy
 
@@ -83,7 +79,6 @@ class Inbox < ApplicationRecord
   # @return [void]
   def add_members(user_ids)
     inbox_members.create!(user_ids.map { |user_id| { user_id: user_id } })
-    update_account_cache
   end
 
   # Removes multiple members from the inbox
@@ -91,7 +86,6 @@ class Inbox < ApplicationRecord
   # @return [void]
   def remove_members(user_ids)
     inbox_members.where(user_id: user_ids).destroy_all
-    update_account_cache
   end
 
   # Sanitizes inbox name for balanced email provider compatibility
@@ -145,7 +139,7 @@ class Inbox < ApplicationRecord
   end
 
   def assignable_agents
-    (account.users.where(id: members.select(:user_id)) + account.administrators).uniq
+    members.to_a
   end
 
   def active_bot?

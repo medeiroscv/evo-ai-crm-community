@@ -229,7 +229,6 @@ class Api::V1::Accounts::EvolutionGo::AuthorizationsController < Api::V1::Accoun
     # Try to find the channel first by instance UUID
     whatsapp_channel = Channel::Whatsapp.joins(:inbox)
                                         .where(provider: 'evolution_go')
-                                        .where(inboxes: { account_id: Current.account.id })
                                         .find { |ch| ch.provider_config['instance_uuid'] == @instance_uuid }
 
     if whatsapp_channel

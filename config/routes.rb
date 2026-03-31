@@ -2,7 +2,6 @@ Rails.application.routes.draw do
   get '/health/live', to: 'health#live'
   get '/health/ready', to: 'health#ready'
   get '/metrics', to: 'health#metrics'
-  get '/api/v1/dynamic_oauth/available_accounts', to: 'api/v1/accounts/dynamic_oauth#available_accounts'
   post '/api/v1/dynamic_oauth/validate_client', to: 'api/v1/accounts/dynamic_oauth#validate_dynamic_client'
 
   ## renders the frontend paths only if its not an api only server
@@ -13,16 +12,16 @@ Rails.application.routes.draw do
 
     get '/app', to: 'dashboard#index'
     get '/app/*params', to: 'dashboard#index'
-    get '/app/accounts/:account_id/settings/inboxes/new/twitter', to: 'dashboard#index', as: 'app_new_twitter_inbox'
-    get '/app/accounts/:account_id/settings/inboxes/new/microsoft', to: 'dashboard#index', as: 'app_new_microsoft_inbox'
-    get '/app/accounts/:account_id/settings/inboxes/new/instagram', to: 'dashboard#index', as: 'app_new_instagram_inbox'
-    get '/app/accounts/:account_id/settings/inboxes/new/whatsapp', to: 'dashboard#index', as: 'app_new_whatsapp_inbox'
-    get '/app/accounts/:account_id/settings/inboxes/new/:inbox_id/agents', to: 'dashboard#index', as: 'app_twitter_inbox_agents'
-    get '/app/accounts/:account_id/settings/inboxes/new/:inbox_id/agents', to: 'dashboard#index', as: 'app_email_inbox_agents'
-    get '/app/accounts/:account_id/settings/inboxes/new/:inbox_id/agents', to: 'dashboard#index', as: 'app_instagram_inbox_agents'
-    get '/app/accounts/:account_id/settings/inboxes/new/:inbox_id/agents', to: 'dashboard#index', as: 'app_whatsapp_inbox_agents'
-    get '/app/accounts/:account_id/settings/inboxes/:inbox_id', to: 'dashboard#index', as: 'app_instagram_inbox_settings'
-    get '/app/accounts/:account_id/settings/inboxes/:inbox_id', to: 'dashboard#index', as: 'app_email_inbox_settings'
+    get '/app/settings/inboxes/new/twitter', to: 'dashboard#index', as: 'app_new_twitter_inbox'
+    get '/app/settings/inboxes/new/microsoft', to: 'dashboard#index', as: 'app_new_microsoft_inbox'
+    get '/app/settings/inboxes/new/instagram', to: 'dashboard#index', as: 'app_new_instagram_inbox'
+    get '/app/settings/inboxes/new/whatsapp', to: 'dashboard#index', as: 'app_new_whatsapp_inbox'
+    get '/app/settings/inboxes/new/:inbox_id/agents', to: 'dashboard#index', as: 'app_twitter_inbox_agents'
+    get '/app/settings/inboxes/new/:inbox_id/agents', to: 'dashboard#index', as: 'app_email_inbox_agents'
+    get '/app/settings/inboxes/new/:inbox_id/agents', to: 'dashboard#index', as: 'app_instagram_inbox_agents'
+    get '/app/settings/inboxes/new/:inbox_id/agents', to: 'dashboard#index', as: 'app_whatsapp_inbox_agents'
+    get '/app/settings/inboxes/:inbox_id', to: 'dashboard#index', as: 'app_instagram_inbox_settings'
+    get '/app/settings/inboxes/:inbox_id', to: 'dashboard#index', as: 'app_email_inbox_settings'
 
     resource :slack_uploads, only: [:show]
   end
@@ -71,20 +70,12 @@ Rails.application.routes.draw do
       end
 
       namespace :oauth do
-        resources :accounts, only: [:index]
         resources :applications, only: [:create]
         resources :authorization, only: [:create]
       end
 
       resource :dashboard, only: [], controller: 'accounts/dashboard' do
         get :customer
-      end
-
-      resources :accounts, only: [:create, :show, :update] do
-        member do
-          post :update_active_at
-          get :cache_keys
-        end
       end
 
       resources :inboxes, only: [:index, :show, :create, :update, :destroy], controller: 'accounts/inboxes' do
@@ -550,7 +541,6 @@ Rails.application.routes.draw do
         member do
           post :availability
           post :auto_offline
-          put :set_active_account
         end
       end
 
@@ -590,34 +580,30 @@ Rails.application.routes.draw do
     end
 
     namespace :v2 do
-      resources :accounts, only: [:create] do
-        scope module: :accounts do
-          resources :summary_reports, only: [] do
-            collection do
-              get :agent
-              get :team
-              get :inbox
-            end
-          end
-          resources :reports, only: [:index] do
-            collection do
-              get :summary
-              get :bot_summary
-              get :agents
-              get :inboxes
-              get :labels
-              get :teams
-              get :conversations
-              get :conversation_traffic
-              get :bot_metrics
-            end
-          end
-          resources :live_reports, only: [] do
-            collection do
-              get :conversation_metrics
-              get :grouped_conversation_metrics
-            end
-          end
+      resources :summary_reports, only: [], controller: 'accounts/summary_reports' do
+        collection do
+          get :agent
+          get :team
+          get :inbox
+        end
+      end
+      resources :reports, only: [:index], controller: 'accounts/reports' do
+        collection do
+          get :summary
+          get :bot_summary
+          get :agents
+          get :inboxes
+          get :labels
+          get :teams
+          get :conversations
+          get :conversation_traffic
+          get :bot_metrics
+        end
+      end
+      resources :live_reports, only: [], controller: 'accounts/live_reports' do
+        collection do
+          get :conversation_metrics
+          get :grouped_conversation_metrics
         end
       end
     end
@@ -646,12 +632,6 @@ Rails.application.routes.draw do
 
         resources :csat_survey, only: [:show, :update]
       end
-    end
-  end
-
-  resource :app, only: [:index] do
-    resources :accounts do
-      resources :conversations, only: [:show]
     end
   end
 

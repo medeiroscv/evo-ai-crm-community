@@ -185,24 +185,17 @@ class OauthAuthorizationController < Doorkeeper::AuthorizationsController
     end
   end
 
-  def bind_rfc7591_app_to_account(application, account_id, current_user)
-    # Verificar se o usuário tem acesso admin à account
-    account_user = current_user.account_users.find_by(account_id: account_id)
-    return false unless account_user&.administrator?
-
-    account = Account.find_by(id: account_id)
-    return false unless account
-
-    # Vincular aplicação à account
-    application.update!(account_id: account_id)
+  def bind_rfc7591_app_to_account(application, _account_id, _current_user)
+    # Single-tenant: just bind the application (no account lookup needed)
+    application.update!(account_id: nil)
 
     if Rails.env.development?
-      Rails.logger.debug "🔗 RFC 7591: Bound application #{application.name} (#{application.uid}) to account #{account.name} (#{account_id})"
+      Rails.logger.debug "RFC 7591: Bound application #{application.name} (#{application.uid})"
     end
 
     true
   rescue => e
-    Rails.logger.error "❌ RFC 7591 Binding Error: #{e.message}"
+    Rails.logger.error "RFC 7591 Binding Error: #{e.message}"
     false
   end
 
@@ -222,23 +215,13 @@ class OauthAuthorizationController < Doorkeeper::AuthorizationsController
   end
 
   def auto_bind_mcp_app_to_account(application, user)
-    # Find the first account the user has admin access to
-    admin_account_user = user.account_users.where(role: 'account_owner').first
+    # Single-tenant: bind the MCP application directly
+    application.update!(account_id: nil)
 
-    if admin_account_user
-      account_id = admin_account_user.account_id
-
-      # Bind the MCP application to this account
-      application.update!(account_id: account_id)
-
-      Rails.logger.info "🤖 MCP Auto-bind: Bound #{application.name} to account #{account_id} for user #{user.email}"
-      return true
-    else
-      Rails.logger.warn "⚠️ MCP Auto-bind: User #{user.email} has no admin accounts available"
-      return false
-    end
+    Rails.logger.info "MCP Auto-bind: Bound #{application.name} for user #{user.email}"
+    true
   rescue => e
-    Rails.logger.error "❌ MCP Auto-bind Error: #{e.message}"
+    Rails.logger.error "MCP Auto-bind Error: #{e.message}"
     false
   end
 

@@ -142,7 +142,6 @@ class Api::V1::Accounts::Zapi::QrcodesController < Api::V1::Accounts::BaseContro
     Channel::Whatsapp.joins(:inbox)
                      .where(provider: 'zapi')
                      .where('provider_config @> ?', { instance_id: instance_id }.to_json)
-                     .where(inboxes: { account_id: Current.account.id })
                      .first
   end
 

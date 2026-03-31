@@ -18,7 +18,7 @@ class Api::V1::Accounts::AiCustomToolsController < Api::V1::Accounts::BaseContro
     params_hash[:search] = params[:search] if params[:search].present?
     params_hash[:tags] = params[:tags] if params[:tags].present?
 
-    Rails.logger.info "AI Custom Tools Index - Current Account: #{Current.account&.id}, User: #{Current.user&.id}, Params: #{params_hash}"
+    Rails.logger.info "AI Custom Tools Index - User: #{Current.user&.id}, Params: #{params_hash}"
 
     response = EvoAiCoreService.list_custom_tools(params_hash, request.headers)
     

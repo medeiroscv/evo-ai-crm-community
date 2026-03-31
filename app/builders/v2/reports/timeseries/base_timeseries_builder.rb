@@ -8,7 +8,8 @@ class V2::Reports::Timeseries::BaseTimeseriesBuilder
   def scope
     case params[:type].to_sym
     when :account
-      account
+      # In single-tenant, return a neutral scope object
+      self
     when :inbox
       inbox
     when :agent
@@ -21,19 +22,32 @@ class V2::Reports::Timeseries::BaseTimeseriesBuilder
   end
 
   def inbox
-    @inbox ||= account.inboxes.find(params[:id])
+    @inbox ||= Inbox.find(params[:id])
   end
 
   def user
-    @user ||= account.users.find(params[:id])
+    @user ||= User.find(params[:id])
   end
 
   def label
-    @label ||= account.labels.find(params[:id])
+    @label ||= Label.find(params[:id])
   end
 
   def team
-    @team ||= account.teams.find(params[:id])
+    @team ||= Team.find(params[:id])
+  end
+
+  # Proxy methods for when scope is self (account-level)
+  def conversations
+    Conversation.all
+  end
+
+  def messages
+    Message.all
+  end
+
+  def reporting_events
+    ReportingEvent.all
   end
 
   def group_by
