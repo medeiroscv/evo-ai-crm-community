@@ -111,7 +111,7 @@ class EvoAuthService
   # Check global user permission
   def check_user_permission(user_id, permission_key)
     response = instrument_remote_call('check_user_permission', user_id: user_id) do
-      post_request("/api/v1/users/check_permission",
+      post_request("/api/v1/users/#{user_id}/check_permission",
                    { permission_key: permission_key })
     end
 
