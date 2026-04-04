@@ -95,6 +95,86 @@ RSpec.describe Api::V1::Admin::AppConfigsController, type: :controller do
         end
       end
 
+      context 'with storage config type' do
+        before do
+          InstallationConfig.create!(name: 'ACTIVE_STORAGE_SERVICE', serialized_value: { 'value' => 's3_compatible' })
+          InstallationConfig.create!(name: 'STORAGE_BUCKET_NAME', serialized_value: { 'value' => 'my-bucket' })
+          InstallationConfig.create!(name: 'STORAGE_ACCESS_KEY_ID', serialized_value: { 'value' => 'AKIA12345' })
+          InstallationConfig.create!(name: 'STORAGE_ACCESS_SECRET', serialized_value: { 'value' => 'super-secret-key' })
+          InstallationConfig.create!(name: 'STORAGE_REGION', serialized_value: { 'value' => 'us-east-1' })
+          InstallationConfig.create!(name: 'STORAGE_ENDPOINT', serialized_value: { 'value' => 'https://s3.example.com' })
+        end
+
+        it 'returns all 6 storage keys' do
+          get :show, params: { config_type: 'storage' }, format: :json
+
+          expect(response).to have_http_status(:ok)
+          body = JSON.parse(response.body)
+          configs = body['data']['configs']
+          expected_keys = %w[ACTIVE_STORAGE_SERVICE STORAGE_BUCKET_NAME STORAGE_ACCESS_KEY_ID
+                             STORAGE_ACCESS_SECRET STORAGE_REGION STORAGE_ENDPOINT]
+          expect(configs.keys).to match_array(expected_keys)
+        end
+
+        it 'masks STORAGE_ACCESS_SECRET' do
+          get :show, params: { config_type: 'storage' }, format: :json
+
+          body = JSON.parse(response.body)
+          configs = body['data']['configs']
+          expect(configs['STORAGE_ACCESS_SECRET']).to start_with('••••••••')
+          expect(configs['STORAGE_ACCESS_SECRET']).not_to eq('super-secret-key')
+        end
+
+        it 'returns plain values for non-secret keys' do
+          get :show, params: { config_type: 'storage' }, format: :json
+
+          body = JSON.parse(response.body)
+          configs = body['data']['configs']
+          expect(configs['ACTIVE_STORAGE_SERVICE']).to eq('s3_compatible')
+          expect(configs['STORAGE_BUCKET_NAME']).to eq('my-bucket')
+          expect(configs['STORAGE_ACCESS_KEY_ID']).to eq('AKIA12345')
+          expect(configs['STORAGE_REGION']).to eq('us-east-1')
+          expect(configs['STORAGE_ENDPOINT']).to eq('https://s3.example.com')
+        end
+      end
+
+      context 'with stripe_payments config type' do
+        before do
+          InstallationConfig.create!(name: 'STRIPE_PUBLISHABLE_KEY', serialized_value: { 'value' => 'pk_test_abc123' })
+          InstallationConfig.create!(name: 'STRIPE_KEY_SECRET', serialized_value: { 'value' => 'sk_test_secret123' })
+          InstallationConfig.create!(name: 'STRIPE_WEBHOOK_SECRET', serialized_value: { 'value' => 'whsec_secret456' })
+        end
+
+        it 'returns all 3 stripe keys' do
+          get :show, params: { config_type: 'stripe_payments' }, format: :json
+
+          expect(response).to have_http_status(:ok)
+          body = JSON.parse(response.body)
+          configs = body['data']['configs']
+          expected_keys = %w[STRIPE_KEY_SECRET STRIPE_PUBLISHABLE_KEY STRIPE_WEBHOOK_SECRET]
+          expect(configs.keys).to match_array(expected_keys)
+        end
+
+        it 'masks STRIPE_KEY_SECRET and STRIPE_WEBHOOK_SECRET' do
+          get :show, params: { config_type: 'stripe_payments' }, format: :json
+
+          body = JSON.parse(response.body)
+          configs = body['data']['configs']
+          expect(configs['STRIPE_KEY_SECRET']).to start_with('••••••••')
+          expect(configs['STRIPE_KEY_SECRET']).not_to eq('sk_test_secret123')
+          expect(configs['STRIPE_WEBHOOK_SECRET']).to start_with('••••••••')
+          expect(configs['STRIPE_WEBHOOK_SECRET']).not_to eq('whsec_secret456')
+        end
+
+        it 'returns plain value for STRIPE_PUBLISHABLE_KEY' do
+          get :show, params: { config_type: 'stripe_payments' }, format: :json
+
+          body = JSON.parse(response.body)
+          configs = body['data']['configs']
+          expect(configs['STRIPE_PUBLISHABLE_KEY']).to eq('pk_test_abc123')
+        end
+      end
+
       context 'with unknown config type' do
         it 'returns 404 with error' do
           get :show, params: { config_type: 'unknown_type' }, format: :json
@@ -322,9 +402,26 @@ RSpec.describe Api::V1::Admin::AppConfigsController, type: :controller do
         end
       end
 
-      context 'with unsupported config type for testing' do
-        it 'returns unsupported message for storage' do
+      context 'with storage config type' do
+        before do
+          service = instance_double(ConfigTest::StorageTestService)
+          allow(ConfigTest::StorageTestService).to receive(:new).and_return(service)
+          allow(service).to receive(:call).and_return({ success: true, message: 'Storage connection successful' })
+        end
+
+        it 'routes to StorageTestService and returns 200' do
           post :test_connection, params: { config_type: 'storage' }, format: :json
+
+          expect(response).to have_http_status(:ok)
+          body = JSON.parse(response.body)
+          expect(body['data']['success']).to be true
+          expect(body['data']['message']).to eq('Storage connection successful')
+        end
+      end
+
+      context 'with unsupported config type for testing' do
+        it 'returns unsupported message' do
+          post :test_connection, params: { config_type: 'evolution' }, format: :json
 
           expect(response).to have_http_status(:ok)
           body = JSON.parse(response.body)

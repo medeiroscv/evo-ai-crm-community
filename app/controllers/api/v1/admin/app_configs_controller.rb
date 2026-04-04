@@ -114,6 +114,8 @@ module Api
             when 'resend' then ConfigTest::ResendTestService.new.call
             else ConfigTest::SmtpTestService.new.call
             end
+          when 'storage'
+            ConfigTest::StorageTestService.new.call
           else
             { success: false, message: "Connection testing not supported for #{config_type}" }
           end
