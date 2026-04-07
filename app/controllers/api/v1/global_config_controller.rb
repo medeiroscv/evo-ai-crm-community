@@ -33,38 +33,7 @@ class Api::V1::GlobalConfigController < Api::BaseController
   end
 
   def whitelabel_config
-    enabled = whitelabel_enabled?
-
-    return { enabled: false } unless enabled
-
-    {
-      enabled: true,
-      logo: {
-        light: GlobalConfigService.load('WHITELABEL_LOGO_LIGHT', '/brand-assets/logo.svg'),
-        dark: GlobalConfigService.load('WHITELABEL_LOGO_DARK', '/brand-assets/logo_dark.svg')
-      },
-      favicon: GlobalConfigService.load('WHITELABEL_FAVICON', nil),
-      companyName: GlobalConfigService.load('WHITELABEL_COMPANY_NAME', nil),
-      systemName: GlobalConfigService.load('WHITELABEL_SYSTEM_NAME', nil),
-      termsOfServiceUrl: GlobalConfigService.load('WHITELABEL_TERMS_OF_SERVICE_URL', nil),
-      privacyPolicyUrl: GlobalConfigService.load('WHITELABEL_PRIVACY_POLICY_URL', nil),
-      colors: {
-        light: {
-          primary: GlobalConfigService.load('WHITELABEL_PRIMARY_COLOR_LIGHT', '#00d4aa'),
-          primaryForeground: GlobalConfigService.load('WHITELABEL_PRIMARY_FOREGROUND_LIGHT', '#ffffff')
-        },
-        dark: {
-          primary: GlobalConfigService.load('WHITELABEL_PRIMARY_COLOR_DARK', '#00ffcc'),
-          primaryForeground: GlobalConfigService.load('WHITELABEL_PRIMARY_FOREGROUND_DARK', '#000000')
-        }
-      }
-    }
-  end
-
-  def whitelabel_enabled?
-    value = GlobalConfigService.load('WHITELABEL_ENABLED', 'false')
-    normalized_value = value.to_s.strip.downcase
-    normalized_value == 'true'
+    { enabled: false }
   end
 
   def enable_account_signup?

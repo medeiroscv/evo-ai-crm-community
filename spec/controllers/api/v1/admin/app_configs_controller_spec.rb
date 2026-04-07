@@ -138,42 +138,6 @@ RSpec.describe Api::V1::Admin::AppConfigsController, type: :controller do
         end
       end
 
-      context 'with stripe_payments config type' do
-        before do
-          InstallationConfig.create!(name: 'STRIPE_PUBLISHABLE_KEY', serialized_value: { 'value' => 'pk_test_abc123' })
-          InstallationConfig.create!(name: 'STRIPE_KEY_SECRET', serialized_value: { 'value' => 'sk_test_secret123' })
-          InstallationConfig.create!(name: 'STRIPE_WEBHOOK_SECRET', serialized_value: { 'value' => 'whsec_secret456' })
-        end
-
-        it 'returns all 3 stripe keys' do
-          get :show, params: { config_type: 'stripe_payments' }, format: :json
-
-          expect(response).to have_http_status(:ok)
-          body = JSON.parse(response.body)
-          configs = body['data']['configs']
-          expected_keys = %w[STRIPE_KEY_SECRET STRIPE_PUBLISHABLE_KEY STRIPE_WEBHOOK_SECRET]
-          expect(configs.keys).to match_array(expected_keys)
-        end
-
-        it 'masks STRIPE_KEY_SECRET and STRIPE_WEBHOOK_SECRET' do
-          get :show, params: { config_type: 'stripe_payments' }, format: :json
-
-          body = JSON.parse(response.body)
-          configs = body['data']['configs']
-          expect(configs['STRIPE_KEY_SECRET']).to start_with('••••••••')
-          expect(configs['STRIPE_KEY_SECRET']).not_to eq('sk_test_secret123')
-          expect(configs['STRIPE_WEBHOOK_SECRET']).to start_with('••••••••')
-          expect(configs['STRIPE_WEBHOOK_SECRET']).not_to eq('whsec_secret456')
-        end
-
-        it 'returns plain value for STRIPE_PUBLISHABLE_KEY' do
-          get :show, params: { config_type: 'stripe_payments' }, format: :json
-
-          body = JSON.parse(response.body)
-          configs = body['data']['configs']
-          expect(configs['STRIPE_PUBLISHABLE_KEY']).to eq('pk_test_abc123')
-        end
-      end
 
       context 'with unknown config type' do
         it 'returns 404 with error' do
@@ -419,39 +383,6 @@ RSpec.describe Api::V1::Admin::AppConfigsController, type: :controller do
         end
       end
 
-      context 'with push_notifications config type' do
-        before do
-          service = instance_double(ConfigTest::FirebaseTestService)
-          allow(ConfigTest::FirebaseTestService).to receive(:new).and_return(service)
-          allow(service).to receive(:call).and_return({ success: true, message: 'Firebase credentials valid' })
-        end
-
-        it 'routes to FirebaseTestService and returns 200' do
-          post :test_connection, params: { config_type: 'push_notifications' }, format: :json
-
-          expect(response).to have_http_status(:ok)
-          body = JSON.parse(response.body)
-          expect(body['data']['success']).to be true
-          expect(body['data']['message']).to eq('Firebase credentials valid')
-        end
-      end
-
-      context 'with push_notifications failure' do
-        before do
-          service = instance_double(ConfigTest::FirebaseTestService)
-          allow(ConfigTest::FirebaseTestService).to receive(:new).and_return(service)
-          allow(service).to receive(:call).and_return({ success: false, message: 'Firebase credentials not configured' })
-        end
-
-        it 'returns 200 with success: false in body' do
-          post :test_connection, params: { config_type: 'push_notifications' }, format: :json
-
-          expect(response).to have_http_status(:ok)
-          body = JSON.parse(response.body)
-          expect(body['data']['success']).to be false
-          expect(body['data']['message']).to include('not configured')
-        end
-      end
 
       context 'with unsupported config type for testing' do
         it 'returns unsupported message' do

@@ -55,50 +55,6 @@
   description: 'Display default Evolution metadata like favicons and upgrade warnings'
   type: boolean
 
-# ------- Whitelabel Branding Config ------- #
-- name: WHITELABEL_ENABLED
-  value: false
-  display_title: 'Enable Whitelabel'
-  description: 'Enable whitelabel branding customization'
-  type: boolean
-  locked: false
-- name: WHITELABEL_LOGO_LIGHT
-  value: '/brand-assets/logo.svg'
-  display_title: 'Logo (Light Mode)'
-  description: 'Logo URL or path for light theme (SVG, PNG, or JPG)'
-  type: text
-  locked: false
-- name: WHITELABEL_LOGO_DARK
-  value: '/brand-assets/logo_dark.svg'
-  display_title: 'Logo (Dark Mode)'
-  description: 'Logo URL or path for dark theme (SVG, PNG, or JPG)'
-  type: text
-  locked: false
-- name: WHITELABEL_PRIMARY_COLOR_LIGHT
-  value: '#00d4aa'
-  display_title: 'Primary Color (Light Mode)'
-  description: 'Primary color in hexadecimal format for light theme (e.g., #00d4aa)'
-  type: text
-  locked: false
-- name: WHITELABEL_PRIMARY_COLOR_DARK
-  value: '#00ffcc'
-  display_title: 'Primary Color (Dark Mode)'
-  description: 'Primary color in hexadecimal format for dark theme (e.g., #00ffcc)'
-  type: text
-  locked: false
-- name: WHITELABEL_PRIMARY_FOREGROUND_LIGHT
-  value: '#ffffff'
-  display_title: 'Primary Foreground (Light Mode)'
-  description: 'Text color on primary background for light theme (hexadecimal format, e.g., #ffffff)'
-  type: text
-  locked: false
-- name: WHITELABEL_PRIMARY_FOREGROUND_DARK
-  value: '#000000'
-  display_title: 'Primary Foreground (Dark Mode)'
-  description: 'Text color on primary background for dark theme (hexadecimal format, e.g., #000000)'
-  type: text
-  locked: false
-# ------- End of Whitelabel Branding Config ------- #
 # ------- End of Branding Related Config ------- #
 
 # ------- Signup & Account Related Config ------- #
@@ -733,25 +689,3 @@
   type: text
 ## ------ End Frontend Runtime Configuration ------ ##
 
-## ------ Stripe Payments Configuration ------ ##
-- name: STRIPE_PUBLISHABLE_KEY
-  display_title: 'Stripe Publishable Key'
-  value:
-  locked: false
-  description: 'Stripe publishable API key (starts with pk_test_ or pk_live_)'
-  type: text
-
-- name: STRIPE_KEY_SECRET
-  display_title: 'Stripe Secret Key'
-  value:
-  locked: false
-  description: 'Stripe secret API key (starts with sk_test_ or sk_live_)'
-  type: secret
-
-- name: STRIPE_WEBHOOK_SECRET
-  display_title: 'Stripe Webhook Secret'
-  value:
-  locked: false
-  description: 'Stripe webhook signing secret (starts with whsec_)'
-  type: secret
-## ------ End Stripe Payments Configuration ------ ##

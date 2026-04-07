@@ -11,7 +11,6 @@ module Api
           ],
           'storage' => %w[ACTIVE_STORAGE_SERVICE STORAGE_BUCKET_NAME STORAGE_ACCESS_KEY_ID
                           STORAGE_ACCESS_SECRET STORAGE_REGION STORAGE_ENDPOINT],
-          'stripe_payments' => %w[STRIPE_KEY_SECRET STRIPE_PUBLISHABLE_KEY STRIPE_WEBHOOK_SECRET],
           'google_oauth' => %w[GOOGLE_OAUTH_CLIENT_ID GOOGLE_OAUTH_CLIENT_SECRET GOOGLE_OAUTH_CALLBACK_URL],
           'facebook' => %w[FB_APP_ID FB_VERIFY_TOKEN FB_APP_SECRET FACEBOOK_API_VERSION
                            ENABLE_MESSENGER_CHANNEL_HUMAN_AGENT FB_FEED_COMMENTS_ENABLED],
@@ -39,13 +38,6 @@ module Api
           ],
           'push_notifications' => %w[FIREBASE_PROJECT_ID FIREBASE_CREDENTIALS_SECRET
                                      IOS_APP_ID ANDROID_BUNDLE_ID],
-          'whitelabel' => %w[
-            WHITELABEL_ENABLED WHITELABEL_LOGO_LIGHT WHITELABEL_LOGO_DARK
-            WHITELABEL_PRIMARY_COLOR_LIGHT WHITELABEL_PRIMARY_COLOR_DARK
-            WHITELABEL_PRIMARY_FOREGROUND_LIGHT WHITELABEL_PRIMARY_FOREGROUND_DARK
-            WHITELABEL_COMPANY_NAME WHITELABEL_SYSTEM_NAME
-            WHITELABEL_TERMS_OF_SERVICE_URL WHITELABEL_PRIVACY_POLICY_URL
-          ],
           'frontend_runtime' => %w[RECAPTCHA_SITE_KEY CLARITY_PROJECT_ID]
         }.freeze
 
@@ -116,8 +108,6 @@ module Api
             end
           when 'storage'
             ConfigTest::StorageTestService.new.call
-          when 'push_notifications'
-            ConfigTest::FirebaseTestService.new.call
           else
             { success: false, message: "Connection testing not supported for #{config_type}" }
           end
